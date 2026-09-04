@@ -1,0 +1,55 @@
+:root {
+  /* 
+    Folio — Warm Editorial Craft
+     */
+
+  /* Surface */
+  --color-background: #f9f9fe;
+  --color-surface: #ffffff;
+  --color-surface-container: #eeeef3;
+  --color-surface-container-low: #f3f3f8;
+  --color-surface-container-high: #e8e8ed;
+
+  /* Text */
+  --color-on-surface: #1a1c20;
+  --color-on-surface-variant: #42474e;
+
+  /* Brand */
+  --color-primary: #9a4111;
+  --color-primary-container: #ba5828;
+  --color-on-primary: #ffffff;
+
+  /* Secondary */
+  --color-secondary: #535f6f;
+  --color-secondary-container: #d7e2f4;
+
+  /* Tertiary */
+  --color-tertiary: #7c5400;
+  --color-tertiary-container: #ffdda6;
+
+  /* Borders */
+  --color-outline: #73777f;
+  --color-outline-variant: #c3c6ce;
+
+  /* Semantic */
+  --color-success: #356a3a;
+  --color-warning: #7c5400;
+  --color-error: #ba1a1a;
+  --color-info: #415f91;
+
+  /* Typography */
+  --font-display: "Newsreader", Georgia, serif;
+  --font-body: "Hanken Grotesk", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Layout */
+  --sidebar-width: 17.5rem;
+  --sidebar-collapsed-width: 4rem;
+  --editor-width: 46rem;
+  --canvas-width: 88rem;
+}
