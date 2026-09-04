@@ -1,55 +1,383 @@
 :root {
   /* 
-    Folio — Warm Editorial Craft
+     FOLIO — WARM EDITORIAL CRAFT
+     Global Design Tokens
+      */
+
+  /* 
+      COLOR SYSTEM
      */
 
   /* Surface */
+
   --color-background: #f9f9fe;
   --color-surface: #ffffff;
-  --color-surface-container: #eeeef3;
+
   --color-surface-container-low: #f3f3f8;
+  --color-surface-container: #eeeef3;
   --color-surface-container-high: #e8e8ed;
 
   /* Text */
+
   --color-on-surface: #1a1c20;
   --color-on-surface-variant: #42474e;
 
   /* Brand */
+
   --color-primary: #9a4111;
   --color-primary-container: #ba5828;
   --color-on-primary: #ffffff;
 
   /* Secondary */
+
   --color-secondary: #535f6f;
   --color-secondary-container: #d7e2f4;
 
   /* Tertiary */
+
   --color-tertiary: #7c5400;
   --color-tertiary-container: #ffdda6;
 
   /* Borders */
+
   --color-outline: #73777f;
   --color-outline-variant: #c3c6ce;
 
   /* Semantic */
+
   --color-success: #356a3a;
   --color-warning: #7c5400;
   --color-error: #ba1a1a;
   --color-info: #415f91;
 
-  /* Typography */
+  /* 
+      TYPOGRAPHY
+      */
+
+  /* Font families */
+
   --font-display: "Newsreader", Georgia, serif;
   --font-body: "Hanken Grotesk", Arial, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* Radius */
+  /* Display */
+
+  --text-display-lg: 56px;
+  --text-display-lg-line: 64px;
+
+  --text-display-md: 40px;
+  --text-display-md-line: 48px;
+
+  /* Headlines */
+
+  --text-headline-lg: 32px;
+  --text-headline-lg-line: 40px;
+
+  --text-headline-md: 24px;
+  --text-headline-md-line: 32px;
+
+  --text-headline-sm: 18px;
+  --text-headline-sm-line: 26px;
+
+  /* Body */
+
+  --text-body-lg: 19px;
+  --text-body-lg-line: 30px;
+
+  --text-body-md: 15px;
+  --text-body-md-line: 24px;
+
+  --text-body-sm: 13px;
+  --text-body-sm-line: 20px;
+
+  /* Labels */
+
+  --text-label-md: 13px;
+  --text-label-md-line: 18px;
+
+  --text-label-sm: 11px;
+  --text-label-sm-line: 16px;
+
+  /* Code */
+
+  --text-code-sm: 12px;
+  --text-code-sm-line: 18px;
+
+  /* 
+      FONT WEIGHTS
+      */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 
+      LETTER SPACING
+      */
+
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-label: 0.08em;
+  --tracking-section: 0.12em;
+  --tracking-caps: 0.14em;
+
+  /* 
+      SPACING
+     
+     Folio follows an 8pt spacing grid with a 4pt
+     micro-grid for small controls and editorial details.
+      */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* 
+     LAYOUT
+      */
+
+  /* Sidebar */
+
+  --sidebar-width: 17.5rem;
+  --sidebar-collapsed-width: 4rem;
+
+  /* Editor */
+
+  --editor-width: 46rem;
+
+  /* Main content */
+
+  --canvas-width: 88rem;
+
+  --content-padding: 2.25rem;
+
+  /* Header */
+
+  --header-height: 4rem;
+
+  /* Mobile */
+
+  --mobile-header-height: 3.75rem;
+
+  /* 
+      BORDER RADIUS
+      */
+
+  --radius-none: 0;
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
 
-  /* Layout */
-  --sidebar-width: 17.5rem;
-  --sidebar-collapsed-width: 4rem;
-  --editor-width: 46rem;
-  --canvas-width: 88rem;
+  --radius-pill: 999px;
+  --radius-full: 9999px;
+
+  /* 
+    BORDERS
+     */
+
+  --border-width-thin: 1px;
+
+  --border-color-subtle: var(--color-outline-variant);
+  --border-color-default: var(--color-outline);
+  --border-color-strong: var(--color-on-surface-variant);
+
+  /* 
+     SHADOWS
+     
+     Folio uses restrained shadows.
+     The interface should feel tactile, not glossy.
+     */
+
+  --shadow-none: none;
+
+  --shadow-sm: 0 1px 2px rgb(26 28 32 / 0.06);
+
+  --shadow-md: 0 4px 12px rgb(26 28 32 / 0.08);
+
+  --shadow-lg: 0 12px 32px rgb(26 28 32 / 0.1);
+
+  /* 
+      MOTION
+     
+     Animation is subtle and editorial.
+     Prefer transform and opacity over layout properties.
+      */
+
+  --motion-instant: 0ms;
+
+  --motion-fast: 150ms;
+  --motion-normal: 200ms;
+  --motion-slow: 300ms;
+  --motion-slower: 450ms;
+
+  /* Easing */
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* 
+     OPACITY
+      */
+
+  --opacity-disabled: 0.45;
+  --opacity-muted: 0.65;
+  --opacity-subtle: 0.8;
+
+  /* 
+     Z-INDEX
+      */
+
+  --z-base: 0;
+
+  --z-content: 10;
+
+  --z-header: 20;
+
+  --z-sidebar: 30;
+
+  --z-dropdown: 40;
+
+  --z-sticky: 50;
+
+  --z-overlay: 60;
+
+  --z-modal: 70;
+
+  --z-toast: 80;
+
+  /* 
+      INTERACTION
+      */
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  --touch-target-min: 44px;
+
+  /* 
+     EDITORIAL COMPONENT VALUES
+      */
+
+  /* Dashboard */
+
+  --dashboard-card-min-height: 14.5rem;
+
+  --dashboard-chart-height: 18rem;
+
+  /* Editor */
+
+  --editor-content-width: 46rem;
+
+  --editor-toolbar-height: 3rem;
+
+  /* Tables */
+
+  --table-row-height: 3.5rem;
+
+  /* Inputs */
+
+  --input-height-sm: 2rem;
+  --input-height-md: 2.5rem;
+  --input-height-lg: 3rem;
+
+  /* Buttons */
+
+  --button-height-sm: 2rem;
+  --button-height-md: 2.5rem;
+  --button-height-lg: 3rem;
+
+  /* 
+      BREAKPOINT REFERENCE
+     
+     Tailwind remains responsible for responsive utilities.
+     These variables are only useful for CSS that genuinely
+     needs breakpoint-independent values.
+      */
+
+  --breakpoint-mobile: 640px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-wide: 1280px;
+  --breakpoint-ultrawide: 1536px;
+}
+
+/* 
+   DARK THEME FOUNDATION
+   
+   We are defining the tokens now so the component system can
+   support dark mode later without rewriting components.
+
+   The current Stitch implementation is primarily being built
+   in the light editorial theme.
+    */
+
+[data-theme="dark"] {
+  --color-background: #111318;
+  --color-surface: #181a20;
+
+  --color-surface-container-low: #1d2026;
+  --color-surface-container: #23262d;
+  --color-surface-container-high: #2a2d35;
+
+  --color-on-surface: #e3e2e6;
+  --color-on-surface-variant: #c4c6cf;
+
+  --color-primary: #ffb58f;
+  --color-primary-container: #ba5828;
+  --color-on-primary: #3d1605;
+
+  --color-secondary: #bbc7d8;
+  --color-secondary-container: #3d4858;
+
+  --color-tertiary: #e8c077;
+  --color-tertiary-container: #5b4100;
+
+  --color-outline: #8d919a;
+  --color-outline-variant: #44474f;
+
+  --color-success: #9bd09b;
+  --color-warning: #e8c077;
+  --color-error: #ffb4ab;
+  --color-info: #a9c7ff;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.24);
+
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.28);
+
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.34);
+}
+
+/*
+   REDUCED MOTION
+   
+   Components can continue to declare their normal animation,
+   while this global rule respects the user's accessibility
+   preference.
+   */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-slow: 0ms;
+    --motion-slower: 0ms;
+  }
 }

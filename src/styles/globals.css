@@ -2,32 +2,56 @@ html {
   scroll-behavior: smooth;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 body {
   margin: 0;
   min-width: 320px;
+  min-height: 100vh;
   background: var(--color-background);
   color: var(--color-on-surface);
   font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+  line-height: var(--text-body-md-line-height);
+  font-weight: var(--font-weight-regular);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 button,
 input,
 textarea,
 select {
+  margin: 0;
   font: inherit;
 }
 
 button {
+  border: 0;
+  background: none;
+  color: inherit;
   cursor: pointer;
 }
 
-button:disabled {
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled {
   cursor: not-allowed;
 }
 
@@ -36,7 +60,121 @@ a {
   text-decoration: none;
 }
 
-img {
+img,
+picture,
+svg,
+canvas,
+video {
   display: block;
   max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+iframe {
+  max-width: 100%;
+  border: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input,
+textarea,
+select {
+  color: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-on-surface-variant);
+  opacity: var(--opacity-placeholder);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+blockquote {
+  margin: 0;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}
+
+code,
+kbd {
+  font-size: 0.9em;
+}
+
+pre {
+  overflow-x: auto;
+}
+
+::selection {
+  background: var(--color-primary-container);
+  color: var(--color-on-primary);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+@media (hover: none) {
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
