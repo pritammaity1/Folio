@@ -1,13 +1,9 @@
-import type { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
 import Header from "../Header/Header";
 import MobileNavigation from "../MobileNavigation/MobileNavigation";
 
-interface AppShellProps {
-  children: ReactNode;
-}
-
-export function AppShell({ children }: AppShellProps) {
+export function AppShell() {
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-[var(--color-background)] text-[var(--color-on-surface)]">
       <Sidebar />
@@ -17,7 +13,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-[var(--canvas-width)] px-[var(--content-padding-mobile)] py-[var(--content-padding-mobile)] sm:px-[var(--content-padding-tablet)] sm:py-[var(--content-padding-tablet)] lg:px-[var(--content-padding-desktop)] lg:py-[var(--content-padding-desktop)]">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>

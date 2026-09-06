@@ -1,12 +1,8 @@
-import AppShell from "../components/layout/AppShell/AppShell";
-import Dashboard from "../pages/dashboard/Dashboard/Dashboard";
+import { useRoutes } from "react-router-dom";
+import { routes } from "./routes";
 
 function App() {
-  return (
-    <AppShell>
-      <Dashboard />
-    </AppShell>
-  );
+  return useRoutes(routes);
 }
 
 export default App;

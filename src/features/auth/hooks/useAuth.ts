@@ -1,18 +1,7 @@
-import { useState } from "react";
-
-type AuthUser = {
-  displayName: string | null;
-  email: string | null;
-};
+import { useAuthContext } from "../../../app/providers/AuthProvider";
 
 export function useAuth() {
-  const [user] = useState<AuthUser | null>({
-    displayName: "Pritam",
-    email: "pritam@example.com",
-  });
-
-  return {
-    user,
-    loading: false,
-  };
+  return useAuthContext();
 }
+
+export default useAuth;

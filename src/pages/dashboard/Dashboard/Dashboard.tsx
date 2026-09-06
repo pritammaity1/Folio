@@ -32,8 +32,6 @@ const metrics = [
   },
 ];
 
-const timeRanges = ["7D", "30D", "90D", "1Y"] as const;
-
 function getGreeting(hour: number) {
   if (hour < 12) {
     return "Good morning";
@@ -69,9 +67,6 @@ function Dashboard() {
   const { user } = useAuth();
 
   const [currentTime, setCurrentTime] = useState(() => new Date());
-
-  const [selectedRange, setSelectedRange] =
-    useState<(typeof timeRanges)[number]>("7D");
 
   useEffect(() => {
     const timer = window.setInterval(() => {
