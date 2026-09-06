@@ -178,3 +178,102 @@ pre {
     scroll-behavior: auto;
   }
 }
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reader-activity-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reader-content-change {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reader-line-draw {
+  from {
+    stroke-dasharray: 0 1;
+  }
+
+  to {
+    stroke-dasharray: 1 0;
+  }
+}
+
+.reader-activity-enter {
+  animation: reader-activity-enter 500ms var(--ease-standard) both;
+}
+
+.reader-content-change {
+  animation: reader-content-change 250ms var(--ease-standard) both;
+}
+
+.reader-value-change {
+  animation: reader-content-change 300ms var(--ease-standard) both;
+}
+
+.reader-chart-change {
+  animation: reader-content-change 350ms var(--ease-standard) both;
+}
+
+.reader-label-change {
+  animation: reader-content-change 300ms var(--ease-standard) both;
+}
+
+.reader-line-draw {
+  animation: reader-line-draw 700ms var(--ease-standard) both;
+}
+
+.reader-line-draw-delay {
+  animation-delay: 100ms;
+}
+
+.reader-point {
+  transition:
+    r var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.reader-point:hover {
+  r: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-activity-enter,
+  .reader-content-change,
+  .reader-value-change,
+  .reader-chart-change,
+  .reader-label-change,
+  .reader-line-draw {
+    animation: none;
+  }
+
+  .reader-point {
+    transition: none;
+  }
+}
