@@ -15,6 +15,10 @@ import {
   Settings,
   Upload,
   Users,
+  KeyRound,
+  Mail,
+  UserRound,
+  CheckCircle2,
 } from "lucide-react";
 
 export type IconName =
@@ -33,7 +37,11 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "more"
-  | "activity";
+  | "activity"
+  | "user"
+  | "mail"
+  | "key"
+  | "check-circle";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -52,6 +60,10 @@ const icons: Record<IconName, LucideIcon> = {
   "chevron-right": ChevronRight,
   more: MoreHorizontal,
   activity: Activity,
+  user: UserRound,
+  mail: Mail,
+  key: KeyRound,
+  "check-circle": CheckCircle2,
 };
 
 interface IconProps {
