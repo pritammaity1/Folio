@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { FirebaseError } from "firebase/app";
 import { useNavigate } from "react-router-dom";
+import signup_image from "../../../assets/images/signup_image.png";
 import { Icon } from "../../../components/ui/Icon/Icon";
+import { ensureUserProfile } from "../../../features/auth/services/userServices";
 import {
+  configureAuthPersistence,
   signInWithGoogle,
   signUpWithEmail,
 } from "../../../services/firebase/auth";
-import { ensureUserProfile } from "../../../features/auth/services/userServices";
 
 function getSignupErrorMessage(error: unknown) {
   if (error instanceof FirebaseError) {
@@ -63,7 +65,11 @@ function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
@@ -86,6 +92,8 @@ function SignUp() {
   async function handleEmailSignup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    setError("");
+
     if (!canSubmit) {
       setError(
         "Please complete all required fields and make sure your password is strong enough.",
@@ -93,7 +101,6 @@ function SignUp() {
       return;
     }
 
-    setError("");
     setSubmitting(true);
 
     try {
@@ -116,6 +123,8 @@ function SignUp() {
     setGoogleSubmitting(true);
 
     try {
+      await configureAuthPersistence(true);
+
       const credential = await signInWithGoogle();
 
       await ensureUserProfile(credential.user);
@@ -130,134 +139,117 @@ function SignUp() {
 
   return (
     <div className="min-h-dvh bg-[var(--color-background)] text-[var(--color-on-surface)]">
-      <header className="border-b border-[var(--color-outline-variant)] bg-[var(--color-background)]">
-        <div className="mx-auto flex h-16 max-w-[var(--canvas-width)] items-center justify-between px-[var(--content-padding-mobile)] sm:px-[var(--content-padding-tablet)] lg:px-[var(--content-padding-desktop)]">
-          <button
-            type="button"
-            aria-label="Go to Folio home"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2.5"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] !bg-[var(--color-primary)] !text-[var(--color-on-primary)]">
-              <span className="font-body text-base font-bold">F</span>
-            </span>
+      <main className="flex min-h-dvh items-center justify-center p-3 sm:p-5 lg:p-6">
+        <section className="grid w-full max-w-[1240px] overflow-hidden rounded-[14px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] lg:h-[calc(100dvh-40px)] lg:max-h-[940px] lg:min-h-[760px] lg:grid-cols-[0.9fr_1fr]">
+          <aside className="relative min-h-[650px] overflow-hidden lg:min-h-0">
+            <div className="relative h-full">
+              <img
+                src={signup_image}
+                alt="Warm editorial desk with books, flowers, coffee, and writing materials"
+                className="absolute inset-0 h-full w-full object-cover object-center"
+                loading="eager"
+              />
 
-            <span className="font-display text-[23px] font-semibold tracking-tight">
-              Folio
-            </span>
-          </button>
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(22,18,14,0.08)_0%,transparent_34%,rgba(250,248,243,0.02)_54%,rgba(250,248,243,0.18)_69%,rgba(250,248,243,0.68)_87%,var(--color-surface)_100%)]" />
 
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 font-body text-[13px] font-medium text-[var(--color-on-surface)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-primary)]"
-          >
-            <span aria-hidden="true">←</span>
-            Back to site
-          </button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1272px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-24">
-        <section className="overflow-hidden rounded-[10px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-md)] lg:grid lg:grid-cols-[0.92fr_1.18fr]">
-          <aside className="flex flex-col justify-between bg-[linear-gradient(135deg,var(--color-surface-container-high),var(--color-surface-container-low))] p-7 sm:p-10 lg:p-12">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--color-surface)] px-3 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)] shadow-[var(--shadow-sm)]">
-                <span
-                  className="h-2 w-2 rounded-full bg-[var(--color-primary)]"
-                  aria-hidden="true"
-                />
-                Editorial Suite v2.4
-              </div>
-
-              <h1 className="mt-7 max-w-[430px] font-display text-[40px] leading-[1.12] tracking-tight text-[var(--color-on-surface)] sm:text-[48px]">
-                A dedicated space for the craft of prose.
-              </h1>
-
-              <p className="mt-6 max-w-[455px] font-body text-[16px] leading-7 text-[var(--color-on-surface-variant)]">
-                Engineered for elite literary journals, independent cultural
-                gazettes, and discerning publishing syndicates.
-              </p>
-            </div>
-
-            <div className="mt-12">
-              <div className="rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-sm)]">
-                <div className="font-display text-[32px] leading-none text-[var(--color-primary)]">
-                  “
-                </div>
-
-                <p className="mt-2 font-display text-[20px] italic leading-8 text-[var(--color-on-surface)]">
-                  Folio transformed our publication workflow into a tactile,
-                  joyful craft. Zero noise, pure prose.
-                </p>
-
-                <div className="mt-7 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-container-high)] font-display text-[16px] font-semibold text-[var(--color-primary)]">
-                    EV
-                  </div>
-
-                  <div>
-                    <p className="font-body text-[14px] font-semibold text-[var(--color-on-surface)]">
-                      Elena Vance
-                    </p>
-
-                    <p className="font-body text-[12px] text-[var(--color-on-surface-variant)]">
-                      Editor-in-Chief,{" "}
-                      <span className="italic text-[var(--color-primary)]">
-                        The Northern Chronicle
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-on-surface-variant)]">
-                  Guild standards
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[
-                    "Zero platform lock-in",
-                    "14-day archival trial",
-                    "Custom vanity domains",
-                  ].map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full border border-[var(--color-outline-variant)] bg-[var(--color-surface)] px-3 py-1.5 font-body text-[11px] font-medium text-[var(--color-on-surface-variant)]"
-                    >
-                      {item}
+              <div className="absolute left-6 top-6 z-10 sm:left-8 sm:top-8 lg:left-9 lg:top-9">
+                <button
+                  type="button"
+                  aria-label="Go to Folio home"
+                  onClick={() => navigate("/")}
+                  className="group inline-flex items-center gap-3"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-[6px] !bg-[var(--color-primary)] !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-[var(--motion-fast)] group-hover:-translate-y-0.5">
+                    <span className="font-display text-[23px] font-semibold leading-none">
+                      F
                     </span>
-                  ))}
+                  </span>
+
+                  <span className="font-display text-[25px] font-semibold tracking-tight text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.18)]">
+                    Folio
+                  </span>
+                </button>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-7 sm:px-8 sm:pb-8 lg:px-9 lg:pb-9">
+                <div className="max-w-[500px]">
+                  <div className="font-display text-[31px] leading-none text-[var(--color-on-surface)]">
+                    “
+                  </div>
+
+                  <blockquote className="mt-1 max-w-[485px] font-display text-[25px] leading-[1.17] tracking-tight text-[var(--color-on-surface)] sm:text-[29px]">
+                    A better tomorrow begins with someone who writes today.
+                  </blockquote>
+
+                  <div className="mt-4 flex items-start gap-3">
+                    <div
+                      className="mt-2 h-px w-9 shrink-0 bg-[var(--color-primary)]"
+                      aria-hidden="true"
+                    />
+
+                    <div>
+                      <p className="font-body text-[12px] font-semibold text-[var(--color-on-surface)]">
+                        Marcus Ellison
+                      </p>
+
+                      <p className="mt-0.5 font-body text-[10px] text-[var(--color-on-surface-variant)]">
+                        Author &amp; Educator
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5">
+                    {[
+                      "Write freely",
+                      "Grow your ideas",
+                      "Share with the world",
+                    ].map((item) => (
+                      <span
+                        key={item}
+                        className="font-body text-[10px] font-medium text-[var(--color-on-surface-variant)]"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           </aside>
 
-          <section className="p-7 sm:p-10 lg:p-12">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-primary)]">
-                  Member registration
-                </p>
+          <section className="flex min-h-0 flex-col bg-[var(--color-surface)] px-6 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-7">
+            <div className="flex items-center justify-between gap-4">
+              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--color-primary)]">
+                Join Folio
+              </span>
 
-                <h2 className="mt-2 font-display text-[34px] leading-tight tracking-tight sm:text-[40px]">
-                  Start writing today
-                </h2>
-
-                <p className="mt-3 max-w-[620px] font-body text-[15px] leading-6 text-[var(--color-on-surface-variant)]">
-                  Set up your publication's workspace in under two minutes. No
-                  credit card required.
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-1.5 font-body text-[12px] font-medium text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-primary)]"
+              >
+                <Icon name="arrow-left" size={15} />
+                Back to site
+              </button>
             </div>
 
-            <div className="mt-4">
+            <div className="mx-auto flex min-h-0 w-full max-w-[530px] flex-1 flex-col justify-center">
+              <div>
+                <h1 className="font-display text-[38px] leading-[1.06] tracking-tight text-[var(--color-on-surface)] sm:text-[44px]">
+                  Create your account
+                </h1>
+
+                <p className="mt-3 max-w-[485px] font-body text-[14px] leading-6 text-[var(--color-on-surface-variant)]">
+                  Build your editorial workspace and turn ideas into published
+                  work.
+                </p>
+              </div>
+
               <button
                 type="button"
                 onClick={handleGoogleSignup}
                 disabled={googleSubmitting || submitting}
-                className="flex h-11 w-full items-center justify-center gap-3 rounded-[5px] !bg-[var(--color-primary)] px-4 font-body text-[14px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-7 flex h-11 w-full items-center justify-center gap-3 rounded-[6px] !bg-[var(--color-primary)] px-4 font-body text-[13px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <svg
                   width="18"
@@ -287,245 +279,304 @@ function SignUp() {
                   ? "Connecting to Google…"
                   : "Continue with Google Workspace"}
               </button>
-            </div>
 
-            <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
-              <span className="font-body text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
-                or register with email
-              </span>
-              <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
-            </div>
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
 
-            <form onSubmit={handleEmailSignup} className="space-y-5">
-              <div>
-                <label
-                  htmlFor="signup-name"
-                  className="mb-2 block font-body text-[13px] font-medium text-[var(--color-on-surface)]"
-                >
-                  Full Name
-                </label>
+                <span className="font-body text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
+                  or continue with email
+                </span>
 
-                <div className="relative">
-                  <Icon
-                    name="user"
-                    size={17}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
-                  />
-
-                  <input
-                    id="signup-name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="e.g. Julian Hayes"
-                    required
-                    className="h-11 w-full rounded-[5px] bg-[var(--color-surface-container-low)] pl-10 pr-3 font-body text-[14px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[box-shadow] duration-[var(--motion-fast)] focus:ring-2 focus:ring-[var(--color-primary)]/15"
-                  />
-                </div>
+                <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
               </div>
 
-              <div>
-                <label
-                  htmlFor="signup-email"
-                  className="mb-2 block font-body text-[13px] font-medium text-[var(--color-on-surface)]"
-                >
-                  Publication Name or Email
-                </label>
-
-                <div className="relative">
-                  <Icon
-                    name="mail"
-                    size={17}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
-                  />
-
-                  <input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="editorial@themonocle.org"
-                    required
-                    className="h-11 w-full rounded-[5px] bg-[var(--color-surface-container-low)] pl-10 pr-3 font-body text-[14px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[box-shadow] duration-[var(--motion-fast)] focus:ring-2 focus:ring-[var(--color-primary)]/15"
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-5 sm:grid-cols-2">
+              <form onSubmit={handleEmailSignup} className="space-y-3.5">
                 <div>
                   <label
-                    htmlFor="signup-password"
-                    className="mb-2 block font-body text-[13px] font-medium text-[var(--color-on-surface)]"
+                    htmlFor="signup-name"
+                    className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
                   >
-                    Password
+                    Full name
                   </label>
 
                   <div className="relative">
                     <Icon
-                      name="key"
+                      name="user"
                       size={17}
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
                     />
 
                     <input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
+                      id="signup-name"
+                      name="name"
+                      type="text"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="Alex Rivers"
                       required
-                      minLength={8}
-                      className="h-11 w-full rounded-[5px] bg-[var(--color-surface-container-low)] pl-10 pr-3 font-body text-[14px] text-[var(--color-on-surface)] outline-none transition-[box-shadow] duration-[var(--motion-fast)] focus:ring-2 focus:ring-[var(--color-primary)]/15"
+                      className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-3 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label
-                    htmlFor="signup-confirm-password"
-                    className="mb-2 block font-body text-[13px] font-medium text-[var(--color-on-surface)]"
+                    htmlFor="signup-email"
+                    className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
                   >
-                    Confirm Password
+                    Email
                   </label>
 
                   <div className="relative">
                     <Icon
-                      name="check-circle"
+                      name="mail"
                       size={17}
-                      className={[
-                        "absolute left-3 top-1/2 -translate-y-1/2",
-                        confirmPassword.length > 0 && passwordsMatch
-                          ? "text-[var(--color-primary)]"
-                          : "text-[var(--color-on-surface-variant)]",
-                      ].join(" ")}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
                     />
 
                     <input
-                      id="signup-confirm-password"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(event) =>
-                        setConfirmPassword(event.target.value)
-                      }
+                      id="signup-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="you@yourdomain.com"
                       required
-                      className="h-11 w-full rounded-[5px] bg-[var(--color-surface-container-low)] pl-10 pr-3 font-body text-[14px] text-[var(--color-on-surface)] outline-none transition-[box-shadow] duration-[var(--motion-fast)] focus:ring-2 focus:ring-[var(--color-primary)]/15"
+                      className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-3 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
                     />
                   </div>
-
-                  {!passwordsMatch && (
-                    <p className="mt-1.5 font-body text-[11px] text-[var(--color-primary)]">
-                      Passwords do not match.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[5px] bg-[var(--color-surface-container-low)] p-3">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
-                    Password health
-                  </p>
-
-                  <span className="font-body text-[12px] font-semibold text-[var(--color-primary)]">
-                    {passwordLabel}
-                  </span>
                 </div>
 
-                <div className="mt-2 grid grid-cols-4 gap-1.5">
-                  {[1, 2, 3, 4].map((level) => (
-                    <span
-                      key={level}
-                      className={[
-                        "h-1 rounded-full transition-colors duration-[var(--motion-fast)]",
-                        level <= passwordScore
-                          ? "bg-[var(--color-primary)]"
-                          : "bg-[var(--color-outline-variant)]",
-                      ].join(" ")}
-                    />
-                  ))}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="signup-password"
+                      className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
+                    >
+                      Password
+                    </label>
+
+                    <div className="relative">
+                      <Icon
+                        name="lock"
+                        size={17}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
+                      />
+
+                      <input
+                        id="signup-password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        placeholder="Create a password"
+                        required
+                        minLength={8}
+                        className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-10 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+
+                      <button
+                        type="button"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        title={showPassword ? "Hide password" : "Show password"}
+                        onClick={() => setShowPassword((value) => !value)}
+                        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-on-surface)]"
+                      >
+                        <Icon
+                          name={showPassword ? "eye-off" : "eye"}
+                          size={17}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="signup-confirm-password"
+                      className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
+                    >
+                      Confirm password
+                    </label>
+
+                    <div className="relative">
+                      <Icon
+                        name="lock"
+                        size={17}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
+                      />
+
+                      <input
+                        id="signup-confirm-password"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={(event) =>
+                          setConfirmPassword(event.target.value)
+                        }
+                        placeholder="Confirm your password"
+                        required
+                        className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-10 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+
+                      <button
+                        type="button"
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide confirm password"
+                            : "Show confirm password"
+                        }
+                        title={
+                          showConfirmPassword
+                            ? "Hide confirm password"
+                            : "Show confirm password"
+                        }
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-on-surface)]"
+                      >
+                        <Icon
+                          name={showConfirmPassword ? "eye-off" : "eye"}
+                          size={17}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="mt-2 flex items-center justify-between gap-4">
-                  <p className="font-body text-[11px] text-[var(--color-on-surface-variant)]">
+                <div className="rounded-[6px] bg-[var(--color-surface-container-low)] px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
+                      Password health
+                    </span>
+
+                    <span className="font-body text-[10px] font-semibold text-[var(--color-primary)]">
+                      {passwordLabel}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-4 gap-1.5">
+                    {[1, 2, 3, 4].map((level) => (
+                      <span
+                        key={level}
+                        className={[
+                          "h-1 rounded-full transition-colors duration-[var(--motion-fast)]",
+                          level <= passwordScore
+                            ? "bg-[var(--color-primary)]"
+                            : "bg-[var(--color-outline-variant)]",
+                        ].join(" ")}
+                      />
+                    ))}
+                  </div>
+
+                  <p className="mt-1.5 font-body text-[10px] leading-4 text-[var(--color-on-surface-variant)]">
                     Use 8+ characters with upper, lower, number, and symbol.
                   </p>
-
-                  <span className="shrink-0 font-mono text-[11px] text-[var(--color-on-surface-variant)]">
-                    {passwordScore}/4
-                  </span>
                 </div>
+
+                {!passwordsMatch && (
+                  <p className="font-body text-[11px] text-[var(--color-primary)]">
+                    Passwords do not match.
+                  </p>
+                )}
+
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(event) => setAcceptedTerms(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
+                  />
+
+                  <span className="font-body text-[11px] leading-5 text-[var(--color-on-surface-variant)]">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      className="text-[var(--color-primary)] underline underline-offset-2"
+                    >
+                      Terms of Service
+                    </button>{" "}
+                    and{" "}
+                    <button
+                      type="button"
+                      className="text-[var(--color-primary)] underline underline-offset-2"
+                    >
+                      Privacy Policy
+                    </button>
+                    .
+                  </span>
+                </label>
+
+                {error && (
+                  <div
+                    role="alert"
+                    className="rounded-[6px] border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] px-3 py-2.5 font-body text-[11px] leading-5 text-[var(--color-primary)]"
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!canSubmit || submitting || googleSubmitting}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-[6px] !bg-[var(--color-primary)] px-5 font-body text-[14px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {submitting ? "Creating account…" : "Create account"}
+
+                  {!submitting && <Icon name="arrow-right" size={16} />}
+                </button>
+              </form>
+
+              <div className="mt-3 pt-1">
+                <p className="mt-7 text-center font-body text-[12px] text-[var(--color-on-surface-variant)]">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    className="font-medium text-[var(--color-primary)] underline underline-offset-2 transition-colors hover:text-[var(--color-primary-container)]"
+                  >
+                    Sign in
+                  </button>
+                </p>
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(event) => setAcceptedTerms(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
-                />
+              <div className="mt-6 border-t border-[var(--color-outline-variant)] pt-4">
+                <div className="flex flex-col gap-3 text-[10px] sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2 font-body text-[var(--color-on-surface-variant)]">
+                    <Icon name="lock" size={12} />
+                    Your connection is encrypted
+                  </div>
 
-                <span className="font-body text-[12px] leading-5 text-[var(--color-on-surface-variant)]">
-                  I agree to the{" "}
-                  <a
-                    href="/"
-                    onClick={(event) => event.preventDefault()}
-                    className="underline underline-offset-2 transition-colors hover:text-[var(--color-primary)]"
-                  >
-                    Terms of Publication
-                  </a>
-                  , the{" "}
-                  <a
-                    href="/"
-                    onClick={(event) => event.preventDefault()}
-                    className="underline underline-offset-2 transition-colors hover:text-[var(--color-primary)]"
-                  >
-                    Archival Privacy Charter
-                  </a>
-                  , and acknowledge the 14-day evaluation window.
-                </span>
-              </label>
+                  <div className="flex items-center gap-4 font-body text-[var(--color-on-surface-variant)]">
+                    <button
+                      type="button"
+                      className="transition-colors hover:text-[var(--color-primary)]"
+                    >
+                      Privacy
+                    </button>
 
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-[5px] border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] px-3 py-2.5 font-body text-[12px] leading-5 text-[var(--color-primary)]"
-                >
-                  {error}
+                    <button
+                      type="button"
+                      className="transition-colors hover:text-[var(--color-primary)]"
+                    >
+                      Terms
+                    </button>
+
+                    <button
+                      type="button"
+                      className="transition-colors hover:text-[var(--color-primary)]"
+                    >
+                      Security
+                    </button>
+                  </div>
                 </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!canSubmit || submitting || googleSubmitting}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-[5px] !bg-[var(--color-primary)] px-5 font-body text-[15px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {submitting
-                  ? "Creating your account…"
-                  : "Create Publication Account"}
-
-                {!submitting && <span aria-hidden="true">→</span>}
-              </button>
-            </form>
-
-            <div className="pt-5">
-              <p className="pb-4 text-center font-body text-[13px] text-[var(--color-on-surface-variant)]">
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => navigate("/login")}
-                  className="font-medium text-[var(--color-primary)] underline underline-offset-2"
-                >
-                  Sign in
-                </button>
-              </p>
+              </div>
             </div>
           </section>
         </section>

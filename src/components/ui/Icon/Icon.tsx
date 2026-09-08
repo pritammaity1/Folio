@@ -19,6 +19,12 @@ import {
   Mail,
   UserRound,
   CheckCircle2,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  ArrowLeft,
+  BookOpen,
 } from "lucide-react";
 
 export type IconName =
@@ -41,7 +47,13 @@ export type IconName =
   | "user"
   | "mail"
   | "key"
-  | "check-circle";
+  | "check-circle"
+  | "arrow-right"
+  | "arrow-left"
+  | "eye"
+  | "eye-off"
+  | "lock"
+  | "book-open";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -64,6 +76,12 @@ const icons: Record<IconName, LucideIcon> = {
   mail: Mail,
   key: KeyRound,
   "check-circle": CheckCircle2,
+  "arrow-right": ArrowRight,
+  "arrow-left": ArrowLeft,
+  eye: Eye,
+  "eye-off": EyeOff,
+  lock: LockKeyhole,
+  "book-open": BookOpen,
 };
 
 interface IconProps {
