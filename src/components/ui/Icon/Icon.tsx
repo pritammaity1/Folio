@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+
 import {
   Activity,
   BarChart3,
@@ -25,6 +26,11 @@ import {
   LockKeyhole,
   ArrowLeft,
   BookOpen,
+  Menu,
+  Search,
+  X,
+  Leaf,
+  
 } from "lucide-react";
 
 export type IconName =
@@ -53,7 +59,12 @@ export type IconName =
   | "eye"
   | "eye-off"
   | "lock"
-  | "book-open";
+  | "book-open"
+  | "menu"
+  | "search"
+  | "x"
+  | "leaf"
+  
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -82,6 +93,10 @@ const icons: Record<IconName, LucideIcon> = {
   "eye-off": EyeOff,
   lock: LockKeyhole,
   "book-open": BookOpen,
+  menu: Menu,
+  search: Search,
+  x: X,
+  leaf: Leaf
 };
 
 interface IconProps {
