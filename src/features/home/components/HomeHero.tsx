@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import homeHeroImage from "../../../assets/images/home_hero_image.png";
 import { Icon } from "../../../components/ui/Icon/Icon";
 import { useAuth } from "../../auth/hooks/useAuth";
+import { usePageExitTransition } from "../../../hooks/usePageExitTransition";
 
 const principles = [
   {
@@ -25,18 +26,44 @@ function HomeHero() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const { isExiting, navigateWithTransition } = usePageExitTransition();
+
   function handleStartWriting() {
-    navigate(user ? "/posts/new" : "/signup");
+    navigateWithTransition({
+      onNavigate: () => {
+        navigate(user ? "/posts/new" : "/login");
+      },
+    });
   }
 
   function handleExploreStories() {
-    navigate("/blog");
+    navigateWithTransition({
+      onNavigate: () => {
+        navigate("/blog");
+      },
+    });
   }
 
   return (
-    <section className="relative min-h-dvh overflow-hidden">
+    <section
+      className={[
+        "relative min-h-dvh overflow-hidden",
+        "transition-[filter,transform,opacity]",
+        "duration-[360ms]",
+        "ease-[var(--ease-standard)]",
+        isExiting ? "scale-[1.008] opacity-0" : "scale-100 opacity-100",
+      ].join(" ")}
+    >
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className={[
+          "absolute inset-0 bg-cover bg-center bg-no-repeat",
+          "transition-[transform,filter]",
+          "duration-[500ms]",
+          "ease-[var(--ease-standard)]",
+          isExiting
+            ? "scale-[1.025] brightness-[1.04]"
+            : "scale-100 brightness-100",
+        ].join(" ")}
         style={{
           backgroundImage: `url(${homeHeroImage})`,
         }}
@@ -44,11 +71,25 @@ function HomeHero() {
       />
 
       <div
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(249,249,254,0.03)_0%,rgba(249,249,254,0.01)_42%,rgba(249,249,254,0)_68%)]"
+        className={[
+          "pointer-events-none absolute inset-0",
+          "bg-[linear-gradient(90deg,rgba(249,249,254,0.03)_0%,rgba(249,249,254,0.01)_42%,rgba(249,249,254,0)_68%)]",
+          "transition-opacity duration-[360ms]",
+          isExiting ? "opacity-0" : "opacity-100",
+        ].join(" ")}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh max-w-[var(--canvas-width)] items-center px-5 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-16">
+      <div
+        className={[
+          "relative z-10 mx-auto flex min-h-dvh max-w-[var(--canvas-width)]",
+          "items-center px-5 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-16",
+          "transition-[transform,opacity]",
+          "duration-[360ms]",
+          "ease-[var(--ease-standard)]",
+          isExiting ? "-translate-x-4 opacity-0" : "translate-x-0 opacity-100",
+        ].join(" ")}
+      >
         <div className="w-full max-w-[660px] -translate-y-5 lg:-translate-y-4">
           <div className="flex items-center gap-3 animate-[card-enter_500ms_var(--ease-standard)_both]">
             <span
@@ -104,6 +145,7 @@ function HomeHero() {
             <button
               type="button"
               onClick={handleExploreStories}
+              disabled={isExiting}
               className={[
                 "group inline-flex h-11 items-center gap-2",
                 "rounded-[5px]",
@@ -112,11 +154,13 @@ function HomeHero() {
                 "font-body text-[13px] font-semibold",
                 "!text-[var(--color-on-primary)]",
                 "shadow-[var(--shadow-sm)]",
-                "transition-[background-color,transform,box-shadow]",
+                "transition-[background-color,transform,box-shadow,opacity]",
                 "duration-[var(--motion-fast)]",
                 "hover:!bg-[var(--color-primary-container)]",
                 "hover:shadow-[var(--shadow-md)]",
                 "active:translate-y-px",
+                "disabled:cursor-not-allowed",
+                "disabled:opacity-70",
               ].join(" ")}
             >
               Explore stories
@@ -131,15 +175,18 @@ function HomeHero() {
             <button
               type="button"
               onClick={handleStartWriting}
+              disabled={isExiting}
               className={[
                 "group inline-flex items-center gap-2",
                 "border-b border-[var(--color-primary)]",
                 "pb-1",
                 "font-body text-[13px] font-semibold",
                 "text-[var(--color-on-surface)]",
-                "transition-[color,border-color]",
+                "transition-[color,border-color,opacity]",
                 "duration-[var(--motion-fast)]",
                 "hover:text-[var(--color-primary)]",
+                "disabled:cursor-not-allowed",
+                "disabled:opacity-70",
               ].join(" ")}
             >
               Start writing
@@ -187,6 +234,18 @@ function HomeHero() {
           </div>
         </div>
       </div>
+
+      <div
+        className={[
+          "pointer-events-none fixed inset-0 z-[var(--z-modal)]",
+          "bg-[var(--color-background)]",
+          "origin-left",
+          "transition-transform duration-[360ms]",
+          "ease-[var(--ease-standard)]",
+          isExiting ? "scale-x-100" : "scale-x-0",
+        ].join(" ")}
+        aria-hidden="true"
+      />
     </section>
   );
 }
