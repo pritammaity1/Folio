@@ -166,7 +166,11 @@ function HomeHero() {
               Explore stories
               <span
                 aria-hidden="true"
-                className="text-[15px] transition-transform duration-[var(--motion-fast)] group-hover:translate-x-1"
+                className={[
+                  "text-[15px]",
+                  "transition-transform duration-[var(--motion-fast)]",
+                  "group-hover:translate-x-1",
+                ].join(" ")}
               >
                 →
               </span>
@@ -178,21 +182,23 @@ function HomeHero() {
               disabled={isExiting}
               className={[
                 "group inline-flex items-center gap-2",
-                "border-b border-[var(--color-primary)]",
-                "pb-1",
                 "font-body text-[13px] font-semibold",
                 "text-[var(--color-on-surface)]",
-                "transition-[color,border-color,opacity]",
-                "duration-[var(--motion-fast)]",
-                "hover:text-[var(--color-primary)]",
+                "transition-colors duration-[var(--motion-fast)]",
+                "focus-visible:outline-none",
                 "disabled:cursor-not-allowed",
                 "disabled:opacity-70",
               ].join(" ")}
             >
-              Start writing
+              <span className="editorial-underline-link">Start writing</span>
+
               <span
                 aria-hidden="true"
-                className="text-[15px] transition-transform duration-[var(--motion-fast)] group-hover:translate-x-1"
+                className={[
+                  "text-[15px]",
+                  "transition-transform duration-[var(--motion-fast)]",
+                  "group-hover:translate-x-1",
+                ].join(" ")}
               >
                 →
               </span>
