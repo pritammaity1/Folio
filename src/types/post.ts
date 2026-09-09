@@ -13,10 +13,12 @@ export interface Post {
   slug: string;
   excerpt: string;
   content: string;
-  featuredImage: string | null;
-  autherId: string;
+  coverMediaId: string | null;
+  mediaIds: string[];
+  authorId: string;
   categoryId: string | null;
   tags: string[];
+  status: PostStatus;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   publishedAt: Timestamp | null;

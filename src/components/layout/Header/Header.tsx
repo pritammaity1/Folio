@@ -36,14 +36,7 @@ const routeTitles: RouteTitle[] = [
     pattern: /^\/media$/,
     title: "Media",
   },
-  {
-    pattern: /^\/categories$/,
-    title: "Categories",
-  },
-  {
-    pattern: /^\/comments$/,
-    title: "Comments",
-  },
+
   {
     pattern: /^\/analytics$/,
     title: "Analytics",

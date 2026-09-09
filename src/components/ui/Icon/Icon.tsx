@@ -2,44 +2,46 @@ import type { LucideIcon } from "lucide-react";
 
 import {
   Activity,
+  ArrowLeft,
+  ArrowRight,
   BarChart3,
+  BookOpen,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileText,
-  FolderOpen,
-  Image,
-  LayoutDashboard,
-  MessageCircle,
-  MoreHorizontal,
-  Plus,
-  Settings,
-  Upload,
-  Users,
-  KeyRound,
-  Mail,
-  UserRound,
-  CheckCircle2,
-  ArrowRight,
+  Clock3,
   Eye,
   EyeOff,
-  LockKeyhole,
-  ArrowLeft,
-  BookOpen,
-  Menu,
-  Search,
-  X,
+  FileText,
+  Image,
+  KeyRound,
+  LayoutDashboard,
   Leaf,
-  
+  Link,
+  LockKeyhole,
+  Mail,
+  Menu,
+  MoreHorizontal,
+  Plus,
+  Save,
+  Search,
+  Send,
+  Settings,
+  Upload,
+  UserRound,
+  Users,
+  X,
+  Sparkles,
+  Check,
 } from "lucide-react";
 
 export type IconName =
   | "dashboard"
+  | "blog"
   | "posts"
   | "new-post"
-  | "categories"
   | "media"
-  | "comments"
   | "analytics"
   | "users"
   | "settings"
@@ -49,6 +51,7 @@ export type IconName =
   | "chevron-left"
   | "chevron-right"
   | "more"
+  | "more-horizontal"
   | "activity"
   | "user"
   | "mail"
@@ -64,15 +67,21 @@ export type IconName =
   | "search"
   | "x"
   | "leaf"
-  
+  | "link"
+  | "clock"
+  | "save"
+  | "send"
+  | "file-text"
+  | "image"
+  | "sparkles"
+  | "check";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
+  blog: BookOpen,
   posts: FileText,
   "new-post": FileText,
-  categories: FolderOpen,
   media: Image,
-  comments: MessageCircle,
   analytics: BarChart3,
   users: Users,
   settings: Settings,
@@ -82,6 +91,7 @@ const icons: Record<IconName, LucideIcon> = {
   "chevron-left": ChevronLeft,
   "chevron-right": ChevronRight,
   more: MoreHorizontal,
+  "more-horizontal": MoreHorizontal,
   activity: Activity,
   user: UserRound,
   mail: Mail,
@@ -96,7 +106,15 @@ const icons: Record<IconName, LucideIcon> = {
   menu: Menu,
   search: Search,
   x: X,
-  leaf: Leaf
+  leaf: Leaf,
+  link: Link,
+  clock: Clock3,
+  save: Save,
+  send: Send,
+  "file-text": FileText,
+  image: Image,
+  sparkles: Sparkles,
+  check: Check,
 };
 
 interface IconProps {

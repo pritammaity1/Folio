@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore";
+
 export type UserRole = "admin" | "editor" | "author";
 
 export interface User {
@@ -5,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   photoURL: string | null;
-  createdAt: import("firebase/firestore").Timestamp;
-  updatedAt: import("firebase/firestore").Timestamp;
+  role: UserRole;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

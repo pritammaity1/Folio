@@ -3,11 +3,10 @@ export interface NavigationItem {
   path: string;
   icon:
     | "dashboard"
+    | "blog"
     | "posts"
     | "new-post"
-    | "categories"
     | "media"
-    | "comments"
     | "analytics"
     | "users"
     | "settings";
@@ -27,6 +26,11 @@ export const navigation: NavigationSection[] = [
         path: "/dashboard",
         icon: "dashboard",
       },
+      {
+        label: "Blog",
+        path: "/blog",
+        icon: "blog",
+      },
     ],
   },
 
@@ -43,11 +47,6 @@ export const navigation: NavigationSection[] = [
         path: "/posts/new",
         icon: "new-post",
       },
-      {
-        label: "Categories",
-        path: "/categories",
-        icon: "categories",
-      },
     ],
   },
 
@@ -58,17 +57,6 @@ export const navigation: NavigationSection[] = [
         label: "Media",
         path: "/media",
         icon: "media",
-      },
-    ],
-  },
-
-  {
-    label: "COMMUNITY",
-    items: [
-      {
-        label: "Comments",
-        path: "/comments",
-        icon: "comments",
       },
     ],
   },

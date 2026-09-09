@@ -12,8 +12,7 @@ import Dashboard from "../pages/dashboard/Dashboard/Dashboard";
 import Posts from "../pages/posts/Posts/Posts";
 import NewPost from "../pages/posts/NewPost/NewPost";
 import MediaLibrary from "../pages/media/MediaLibrary/MediaLibrary";
-import Categories from "../features/categories/Categories/Categories";
-import Comments from "../pages/comments/Comments/Comments";
+import Blog from "../pages/blog/Blog/Blog";
 import Analytics from "../pages/analytics/Analytics/Analytics";
 import Users from "../pages/users/Users/Users";
 import Profile from "../features/profile/Profile/Profile";
@@ -74,6 +73,10 @@ export const routes: RouteObject[] = [
             element: <Dashboard />,
           },
           {
+            path: "/blog",
+            element: <Blog />,
+          },
+          {
             path: "/posts",
             element: <Posts />,
           },
@@ -93,14 +96,7 @@ export const routes: RouteObject[] = [
             path: "/media",
             element: <MediaLibrary />,
           },
-          {
-            path: "/categories",
-            element: <Categories />,
-          },
-          {
-            path: "/comments",
-            element: <Comments />,
-          },
+
           {
             path: "/analytics",
             element: <Analytics />,

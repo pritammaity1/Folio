@@ -102,7 +102,7 @@ export function Sidebar() {
               />
 
               <span className="truncate font-body text-[13px] font-semibold text-[var(--color-on-surface)]">
-                Kinfolk Studio
+                Folio Studio
               </span>
             </span>
 

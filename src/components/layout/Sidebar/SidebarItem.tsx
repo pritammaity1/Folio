@@ -17,11 +17,10 @@ export function SidebarItem({
 }: SidebarItemProps) {
   const isExactRoute =
     path === "/dashboard" ||
+    path === "/blog" ||
     path === "/posts" ||
     path === "/posts/new" ||
-    path === "/categories" ||
     path === "/media" ||
-    path === "/comments" ||
     path === "/analytics" ||
     path === "/users" ||
     path === "/settings";

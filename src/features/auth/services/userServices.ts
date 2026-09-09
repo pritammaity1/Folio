@@ -1,5 +1,6 @@
-import { getDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { type User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import type { User as FirebaseUser } from "firebase/auth";
+
 import { db } from "../../../services/firebase/firestore";
 
 interface UserProfileInput {
