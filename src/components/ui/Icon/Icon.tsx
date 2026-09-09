@@ -34,6 +34,7 @@ import {
   X,
   Sparkles,
   Check,
+  LogOut,
 } from "lucide-react";
 
 export type IconName =
@@ -74,7 +75,8 @@ export type IconName =
   | "file-text"
   | "image"
   | "sparkles"
-  | "check";
+  | "check"
+  | "logout";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -115,6 +117,7 @@ const icons: Record<IconName, LucideIcon> = {
   image: Image,
   sparkles: Sparkles,
   check: Check,
+  logout: LogOut,
 };
 
 interface IconProps {

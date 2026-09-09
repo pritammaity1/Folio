@@ -26,7 +26,7 @@ export async function ensureUserProfile(
       "User",
     email: firebaseUser.email ?? "",
     photoURL: firebaseUser.photoURL ?? null,
-    role: "author",
+    role: "editor",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
