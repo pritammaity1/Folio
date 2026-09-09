@@ -46,10 +46,6 @@ interface MediaRecord {
   status: "active" | "deleting";
 }
 
-interface CategoryRecord {
-  postCount: number;
-}
-
 function normalizeMediaIds(coverMediaId: string | null, mediaIds: string[]) {
   return getUniqueMediaIds(coverMediaId, mediaIds);
 }

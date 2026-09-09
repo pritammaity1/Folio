@@ -30,12 +30,8 @@ function NewPost() {
   const [tags, setTags] = useState<string[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savingAction, setSavingAction] = useState<
-    "draft" | "review" | "published" | null
-  >(null);
-  const [status, setStatus] = useState<EditorStatus>("draft");
   const [message, setMessage] = useState("");
-  const [previewMode, setPreviewMode] = useState(false);
+  const [previewMode] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
   const { startUpload, isUploading } = useUploadThing("imageUploader", {
@@ -187,13 +183,6 @@ function NewPost() {
     }
 
     setSaving(true);
-    setSavingAction(
-      targetStatus === "draft"
-        ? "draft"
-        : targetStatus === "published"
-          ? "published"
-          : null,
-    );
     setMessage("");
 
     try {
@@ -204,13 +193,13 @@ function NewPost() {
         content,
         coverMediaId,
         mediaIds: [],
+        categoryId: null,
         tags,
         status: targetStatus,
         publishedAt:
           targetStatus === "published" ? new Date().toISOString() : null,
       });
 
-      setStatus(targetStatus);
       setHasSaved(true);
 
       if (targetStatus === "draft") {
@@ -230,22 +219,7 @@ function NewPost() {
       );
     } finally {
       setSaving(false);
-      setSavingAction(null);
     }
-  }
-
-  function handleStatusChange(nextStatus: EditorStatus) {
-    setStatus(nextStatus);
-    setHasSaved(false);
-    setMessage("");
-  }
-
-  function handlePreview() {
-    setPreviewMode((current) => !current);
-  }
-
-  function handleMore() {
-    setMessage("More post actions will be added here.");
   }
 
   return (
@@ -329,7 +303,6 @@ function NewPost() {
               </main>
 
               <EditorSideBar
-                status={status}
                 saving={saving}
                 disabled={isBusy}
                 authorName={authorName}
@@ -341,7 +314,6 @@ function NewPost() {
                 hasTitle={Boolean(title.trim())}
                 hasExcerpt={Boolean(excerpt.trim())}
                 hasCoverImage={Boolean(coverPreviewUrl)}
-                onStatusChange={handleStatusChange}
                 onSaveDraft={() => void saveStory("draft")}
                 onPublish={() => void saveStory("published")}
                 onTagsChange={(nextTags) => {

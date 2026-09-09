@@ -3,9 +3,13 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  orderBy,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 import { db } from "./firestore";
@@ -75,6 +79,24 @@ export async function getPost(postId: string) {
     id: snapshot.id,
     ...snapshot.data(),
   } as Post;
+}
+
+export async function getPublishedPosts() {
+  const publishedPostsQuery = query(
+    postsCollection,
+    where("status", "==", "published"),
+    orderBy("publishedAt", "desc"),
+  );
+
+  const snapshot = await getDocs(publishedPostsQuery);
+
+  return snapshot.docs.map(
+    (postSnapshot) =>
+      ({
+        id: postSnapshot.id,
+        ...postSnapshot.data(),
+      }) as Post,
+  );
 }
 
 export async function updatePost(postId: string, input: UpdatePostInput) {
