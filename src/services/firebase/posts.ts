@@ -113,3 +113,17 @@ export async function deletePost(postId: string) {
 
   await deleteDoc(postRef);
 }
+
+export async function getAllPosts() {
+  const allPostsQuery = query(postsCollection, orderBy("updatedAt", "desc"));
+
+  const snapshot = await getDocs(allPostsQuery);
+
+  return snapshot.docs.map(
+    (postSnapshot) =>
+      ({
+        id: postSnapshot.id,
+        ...postSnapshot.data(),
+      }) as Post,
+  );
+}

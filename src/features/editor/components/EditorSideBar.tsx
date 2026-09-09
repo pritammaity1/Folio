@@ -1,3 +1,4 @@
+import type { PostStatus } from "../../../types/post";
 import EditorialTips from "./EditorialTips";
 import PublishPanel from "./PublishPanel";
 import ReadingPanel from "./ReadingPanel";
@@ -18,6 +19,7 @@ interface EditorSideBarProps {
   onSaveDraft: () => void;
   onPublish: () => void;
   onTagsChange: (tags: string[]) => void;
+  onStatusChange?: (status: PostStatus) => void;
 }
 
 function EditorSideBar({

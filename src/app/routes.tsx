@@ -16,6 +16,8 @@ import Blog from "../pages/blog/Blog/Blog";
 import Analytics from "../pages/analytics/Analytics/Analytics";
 import Users from "../pages/users/Users/Users";
 import Profile from "../features/profile/Profile/Profile";
+import PostPreview from "../pages/posts/PostPreview/PostPreview";
+import EditPost from "../pages/posts/EditPost/EditPost";
 
 interface ComingSoonProps {
   title: string;
@@ -86,11 +88,11 @@ export const routes: RouteObject[] = [
           },
           {
             path: "/posts/:id",
-            element: <ComingSoon title="Post" />,
+            element: <PostPreview />,
           },
           {
             path: "/posts/:id/edit",
-            element: <ComingSoon title="Edit Post" />,
+            element: <EditPost />,
           },
           {
             path: "/media",

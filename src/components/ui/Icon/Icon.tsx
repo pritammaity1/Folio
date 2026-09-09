@@ -35,6 +35,10 @@ import {
   Sparkles,
   Check,
   LogOut,
+  RotateCcw,
+  Pencil,
+  ArrowUpRight,
+  TriangleAlert,
 } from "lucide-react";
 
 export type IconName =
@@ -76,7 +80,11 @@ export type IconName =
   | "image"
   | "sparkles"
   | "check"
-  | "logout";
+  | "logout"
+  | "rotate-ccw"
+  | "pencil"
+  | "arrow-up-right"
+  | "triangle-alert";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -118,6 +126,10 @@ const icons: Record<IconName, LucideIcon> = {
   sparkles: Sparkles,
   check: Check,
   logout: LogOut,
+  "rotate-ccw": RotateCcw,
+  pencil: Pencil,
+  "arrow-up-right": ArrowUpRight,
+  "triangle-alert": TriangleAlert,
 };
 
 interface IconProps {
