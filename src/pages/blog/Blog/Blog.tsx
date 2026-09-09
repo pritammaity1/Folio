@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Timestamp } from "firebase/firestore";
 
 import { Icon } from "../../../components/ui/Icon/Icon";
+import { getMediaById } from "../../../services/firebase/media";
 import { getPublishedPosts } from "../../../services/firebase/posts";
 import type { Post } from "../../../types/post";
 
@@ -56,6 +57,7 @@ function Blog() {
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -70,9 +72,53 @@ function Blog() {
 
         const publishedPosts = await getPublishedPosts();
 
-        if (active) {
-          setPosts(publishedPosts);
+        if (!active) {
+          return;
         }
+
+        setPosts(publishedPosts);
+
+        const mediaEntries = await Promise.all(
+          publishedPosts.map(async (post) => {
+            if (!post.coverMediaId) {
+              return null;
+            }
+
+            try {
+              const media = await getMediaById(post.coverMediaId);
+
+              if (!media || media.status !== "active") {
+                return null;
+              }
+
+              return {
+                mediaId: post.coverMediaId,
+                url: media.url,
+              };
+            } catch (mediaError) {
+              console.error(
+                `Failed to load media for post ${post.id}.`,
+                mediaError,
+              );
+
+              return null;
+            }
+          }),
+        );
+
+        if (!active) {
+          return;
+        }
+
+        const nextMediaUrls: Record<string, string> = {};
+
+        mediaEntries.forEach((entry) => {
+          if (entry) {
+            nextMediaUrls[entry.mediaId] = entry.url;
+          }
+        });
+
+        setMediaUrls(nextMediaUrls);
       } catch (loadError) {
         console.error("Failed to load published posts.", loadError);
 
@@ -213,21 +259,33 @@ function Blog() {
                     className="group cursor-pointer overflow-hidden rounded-[12px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-xs)] transition-[transform,box-shadow] duration-[var(--motion-normal)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
                     onClick={() => navigate(`/posts/${featuredPost.id}`)}
                   >
-                    <div className="grid min-h-[430px] lg:grid-cols-[1.15fr_0.85fr]">
-                      <div className="relative min-h-[280px] overflow-hidden bg-[var(--color-surface-container-low)]">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <span className="font-display text-[96px] font-semibold italic leading-none text-[var(--color-outline)]/40">
-                              F
-                            </span>
+                    <div className="grid min-h-[500px] lg:grid-cols-[1.15fr_0.85fr]">
+                      <div className="relative min-h-[360px] overflow-hidden bg-[var(--color-surface-container-low)]">
+                        {featuredPost.coverMediaId &&
+                        mediaUrls[featuredPost.coverMediaId] ? (
+                          <div
+                            aria-label={featuredPost.title}
+                            role="img"
+                            style={{
+                              backgroundImage: `url("${mediaUrls[featuredPost.coverMediaId]}")`,
+                            }}
+                            className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                              <span className="font-display text-[96px] font-semibold italic leading-none text-[var(--color-outline)]/40">
+                                F
+                              </span>
 
-                            <p className="mt-3 font-body text-[10px] uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)]">
-                              Folio Journal
-                            </p>
+                              <p className="mt-3 font-body text-[10px] uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)]">
+                                Folio Journal
+                              </p>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,28,32,0.12)] to-transparent opacity-0 transition-opacity duration-[var(--motion-normal)] group-hover:opacity-100" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,28,32,0.18)] to-transparent opacity-0 transition-opacity duration-[var(--motion-normal)] group-hover:opacity-100" />
                       </div>
 
                       <div className="flex flex-col justify-between p-6 sm:p-8 lg:p-9">
