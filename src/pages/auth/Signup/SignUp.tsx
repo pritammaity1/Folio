@@ -15,14 +15,19 @@ function getSignupErrorMessage(error: unknown) {
     switch (error.code) {
       case "auth/email-already-in-use":
         return "An account with this email already exists.";
+
       case "auth/invalid-email":
         return "Please enter a valid email address.";
+
       case "auth/weak-password":
         return "The password does not meet the required security policy.";
+
       case "auth/popup-closed-by-user":
         return "The Google sign-in window was closed before completion.";
+
       case "auth/popup-blocked":
         return "Your browser blocked the Google sign-in window. Please allow popups and try again.";
+
       default:
         return "Unable to create your account. Please try again.";
     }
@@ -40,21 +45,28 @@ function getPasswordScore(password: string) {
   if (/\d/.test(password)) score += 1;
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
-  return Math.min(score, 4);
+  return Math.min(score, 5);
 }
 
 function getPasswordLabel(score: number) {
   switch (score) {
     case 0:
       return "Enter a password";
+
     case 1:
       return "Very weak";
+
     case 2:
       return "Needs improvement";
+
     case 3:
       return "Good";
-    default:
+
+    case 4:
       return "Strong";
+
+    default:
+      return "Excellent";
   }
 }
 
@@ -74,16 +86,29 @@ function SignUp() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
 
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
+
   const passwordScore = useMemo(() => getPasswordScore(password), [password]);
 
   const passwordLabel = getPasswordLabel(passwordScore);
 
-  const passwordsMatch =
-    confirmPassword.length === 0 || password === confirmPassword;
+  const emailIsValid =
+    email.trim().length === 0 ||
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+  const showEmailError =
+    emailTouched && email.trim().length > 0 && !emailIsValid;
+
+  const showPasswordMismatch =
+    confirmPasswordTouched &&
+    confirmPassword.length > 0 &&
+    password !== confirmPassword;
 
   const canSubmit =
     name.trim().length > 0 &&
     email.trim().length > 0 &&
+    emailIsValid &&
     password.length >= 8 &&
     passwordScore >= 3 &&
     password === confirmPassword &&
@@ -93,6 +118,9 @@ function SignUp() {
     event.preventDefault();
 
     setError("");
+
+    setEmailTouched(true);
+    setConfirmPasswordTouched(true);
 
     if (!canSubmit) {
       setError(
@@ -110,7 +138,9 @@ function SignUp() {
         name: name.trim(),
       });
 
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch (signupError) {
       setError(getSignupErrorMessage(signupError));
     } finally {
@@ -129,7 +159,9 @@ function SignUp() {
 
       await ensureUserProfile(credential.user);
 
-      navigate("/dashboard", { replace: true });
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch (googleError) {
       setError(getSignupErrorMessage(googleError));
     } finally {
@@ -138,108 +170,95 @@ function SignUp() {
   }
 
   return (
-    <div className="min-h-dvh bg-[var(--color-background)] text-[var(--color-on-surface)]">
-      <main className="flex min-h-dvh items-center justify-center p-3 sm:p-5 lg:p-6">
-        <section className="grid w-full max-w-[1240px] overflow-hidden rounded-[14px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-lg)] lg:h-[calc(100dvh-40px)] lg:max-h-[940px] lg:min-h-[760px] lg:grid-cols-[0.9fr_1fr]">
-          <aside className="relative min-h-[650px] overflow-hidden lg:min-h-0">
-            <div className="relative h-full">
-              <img
-                src={signup_image}
-                alt="Warm editorial desk with books, flowers, coffee, and writing materials"
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                loading="eager"
-              />
+    <div className="signup-page">
+      <main className="signup-page__main">
+        <section className="signup-layout">
+          <aside className="signup-editorial-panel">
+            <img
+              src={signup_image}
+              alt="Warm editorial desk with books, flowers, coffee, and writing materials"
+              className="signup-editorial-image"
+              loading="eager"
+              decoding="async"
+            />
 
-              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(22,18,14,0.08)_0%,transparent_34%,rgba(250,248,243,0.02)_54%,rgba(250,248,243,0.18)_69%,rgba(250,248,243,0.68)_87%,var(--color-surface)_100%)]" />
+            <div className="signup-editorial-overlay" aria-hidden="true" />
 
-              <div className="absolute left-6 top-6 z-10 sm:left-8 sm:top-8 lg:left-9 lg:top-9">
-                <button
-                  type="button"
-                  aria-label="Go to Folio home"
-                  onClick={() => navigate("/")}
-                  className="group inline-flex items-center gap-3"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-[6px] !bg-[var(--color-primary)] !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-transform duration-[var(--motion-fast)] group-hover:-translate-y-0.5">
-                    <span className="font-display text-[23px] font-semibold leading-none">
-                      F
-                    </span>
+            <div className="signup-editorial-logo">
+              <button
+                type="button"
+                aria-label="Go to Folio home"
+                onClick={() => navigate("/")}
+                className="signup-brand group"
+              >
+                <span className="signup-brand__mark">
+                  <span className="font-display text-[23px] font-semibold leading-none">
+                    F
                   </span>
+                </span>
 
-                  <span className="font-display text-[25px] font-semibold tracking-tight text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.18)]">
-                    Folio
-                  </span>
-                </button>
-              </div>
+                <span className="signup-brand__name">Folio</span>
+              </button>
+            </div>
 
-              <div className="absolute bottom-0 left-0 right-0 z-10 px-6 pb-7 sm:px-8 sm:pb-8 lg:px-9 lg:pb-9">
-                <div className="max-w-[500px]">
-                  <div className="font-display text-[31px] leading-none text-[var(--color-on-surface)]">
-                    “
-                  </div>
+            <div className="signup-editorial-copy">
+              <div className="signup-editorial-copy__inner">
+                <p className="signup-editorial-copy__eyebrow">
+                  The Folio Journal
+                </p>
 
-                  <blockquote className="mt-1 max-w-[485px] font-display text-[25px] leading-[1.17] tracking-tight text-[var(--color-on-surface)] sm:text-[29px]">
-                    A better tomorrow begins with someone who writes today.
-                  </blockquote>
+                <h2 className="signup-editorial-copy__title">
+                  A better tomorrow begins with{" "}
+                  <em>someone who writes today.</em>
+                </h2>
 
-                  <div className="mt-4 flex items-start gap-3">
-                    <div
-                      className="mt-2 h-px w-9 shrink-0 bg-[var(--color-primary)]"
-                      aria-hidden="true"
-                    />
+                <div className="signup-editorial-copy__author">
+                  <span
+                    className="signup-editorial-copy__line"
+                    aria-hidden="true"
+                  />
 
-                    <div>
-                      <p className="font-body text-[12px] font-semibold text-[var(--color-on-surface)]">
-                        Marcus Ellison
-                      </p>
+                  <div>
+                    <p className="signup-editorial-copy__author-name">
+                      Marcus Ellison
+                    </p>
 
-                      <p className="mt-0.5 font-body text-[10px] text-[var(--color-on-surface-variant)]">
-                        Author &amp; Educator
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap gap-x-4 gap-y-1.5">
-                    {[
-                      "Write freely",
-                      "Grow your ideas",
-                      "Share with the world",
-                    ].map((item) => (
-                      <span
-                        key={item}
-                        className="font-body text-[10px] font-medium text-[var(--color-on-surface-variant)]"
-                      >
-                        {item}
-                      </span>
-                    ))}
+                    <p className="signup-editorial-copy__author-role">
+                      Author &amp; Educator
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            <div className="signup-editorial-footer">
+              <span>Write freely</span>
+              <span aria-hidden="true">|</span>
+              <span>Grow your ideas</span>
+              <span aria-hidden="true">|</span>
+              <span>Share with the world</span>
+            </div>
           </aside>
 
-          <section className="flex min-h-0 flex-col bg-[var(--color-surface)] px-6 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-7">
-            <div className="flex items-center justify-between gap-4">
-              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--color-primary)]">
-                Join Folio
-              </span>
+          <section className="signup-form-panel">
+            <div className="signup-topbar">
+              <span className="signup-topbar__eyebrow">Join Folio</span>
 
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="flex items-center gap-1.5 font-body text-[12px] font-medium text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-primary)]"
+                className="signup-back-button"
               >
                 <Icon name="arrow-left" size={15} />
                 Back to site
               </button>
             </div>
 
-            <div className="mx-auto flex min-h-0 w-full max-w-[530px] flex-1 flex-col justify-center">
-              <div>
-                <h1 className="font-display text-[38px] leading-[1.06] tracking-tight text-[var(--color-on-surface)] sm:text-[44px]">
-                  Create your account
-                </h1>
+            <div className="signup-form-shell">
+              <div className="signup-heading">
+                <h1 className="signup-heading__title">Create your account</h1>
 
-                <p className="mt-3 max-w-[485px] font-body text-[14px] leading-6 text-[var(--color-on-surface-variant)]">
+                <p className="signup-heading__description">
                   Build your editorial workspace and turn ideas into published
                   work.
                 </p>
@@ -249,7 +268,7 @@ function SignUp() {
                 type="button"
                 onClick={handleGoogleSignup}
                 disabled={googleSubmitting || submitting}
-                className="mt-7 flex h-11 w-full items-center justify-center gap-3 rounded-[6px] !bg-[var(--color-primary)] px-4 font-body text-[13px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
+                className="signup-google-button"
               >
                 <svg
                   width="18"
@@ -261,14 +280,17 @@ function SignUp() {
                     fill="#4285F4"
                     d="M21.35 12.2c0-.72-.06-1.42-.18-2.08H12v3.94h5.24a4.48 4.48 0 0 1-1.95 2.94v2.44h3.15c1.84-1.7 2.91-4.2 2.91-7.24Z"
                   />
+
                   <path
                     fill="#34A853"
                     d="M12 21.5c2.63 0 4.84-.87 6.45-2.36l-3.15-2.44c-.87.58-1.98.93-3.3.93-2.53 0-4.67-1.71-5.44-4.01H3.3v2.51A9.74 9.74 0 0 0 12 21.5Z"
                   />
+
                   <path
                     fill="#FBBC05"
                     d="M6.56 13.62A5.85 5.85 0 0 1 6.25 12c0-.56.1-1.1.31-1.62V7.87H3.3A9.5 9.5 0 0 0 2.5 12c0 1.53.37 2.97.8 4.13l3.26-2.51Z"
                   />
+
                   <path
                     fill="#EA4335"
                     d="M12 6.37c1.44 0 2.73.49 3.74 1.44l2.8-2.8C16.84 3.47 14.63 2.5 12 2.5a9.74 9.74 0 0 0-8.7 5.37l3.26 2.51c.77-2.3 2.91-4.01 5.44-4.01Z"
@@ -280,31 +302,22 @@ function SignUp() {
                   : "Continue with Google Workspace"}
               </button>
 
-              <div className="my-5 flex items-center gap-3">
-                <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
-
-                <span className="font-body text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
-                  or continue with email
-                </span>
-
-                <div className="h-px flex-1 bg-[var(--color-outline-variant)]" />
+              <div className="signup-divider">
+                <span />
+                <p>or continue with email</p>
+                <span />
               </div>
 
-              <form onSubmit={handleEmailSignup} className="space-y-3.5">
-                <div>
-                  <label
-                    htmlFor="signup-name"
-                    className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
-                  >
-                    Full name
-                  </label>
+              <form
+                onSubmit={handleEmailSignup}
+                className="signup-form"
+                noValidate
+              >
+                <div className="signup-field">
+                  <label htmlFor="signup-name">Full name</label>
 
-                  <div className="relative">
-                    <Icon
-                      name="user"
-                      size={17}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
-                    />
+                  <div className="signup-input-wrapper">
+                    <Icon name="user" size={17} className="signup-input-icon" />
 
                     <input
                       id="signup-name"
@@ -315,25 +328,20 @@ function SignUp() {
                       onChange={(event) => setName(event.target.value)}
                       placeholder="Alex Rivers"
                       required
-                      className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-3 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="signup-email"
-                    className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
-                  >
-                    Email
-                  </label>
+                <div className="signup-field">
+                  <label htmlFor="signup-email">Email</label>
 
-                  <div className="relative">
-                    <Icon
-                      name="mail"
-                      size={17}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
-                    />
+                  <div
+                    className={[
+                      "signup-input-wrapper",
+                      showEmailError ? "signup-input-wrapper--invalid" : "",
+                    ].join(" ")}
+                  >
+                    <Icon name="mail" size={17} className="signup-input-icon" />
 
                     <input
                       id="signup-email"
@@ -342,27 +350,32 @@ function SignUp() {
                       autoComplete="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
+                      onBlur={() => setEmailTouched(true)}
                       placeholder="you@yourdomain.com"
                       required
-                      className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-3 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      aria-invalid={showEmailError}
+                      aria-describedby={
+                        showEmailError ? "signup-email-error" : undefined
+                      }
                     />
                   </div>
+
+                  {showEmailError && (
+                    <p id="signup-email-error" className="signup-field-error">
+                      Enter a valid email address.
+                    </p>
+                  )}
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor="signup-password"
-                      className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
-                    >
-                      Password
-                    </label>
+                <div className="signup-password-grid">
+                  <div className="signup-field">
+                    <label htmlFor="signup-password">Password</label>
 
-                    <div className="relative">
+                    <div className="signup-input-wrapper">
                       <Icon
                         name="lock"
                         size={17}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
+                        className="signup-input-icon"
                       />
 
                       <input
@@ -373,9 +386,8 @@ function SignUp() {
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         placeholder="Create a password"
-                        required
                         minLength={8}
-                        className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-10 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                        required
                       />
 
                       <button
@@ -385,7 +397,7 @@ function SignUp() {
                         }
                         title={showPassword ? "Hide password" : "Show password"}
                         onClick={() => setShowPassword((value) => !value)}
-                        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-on-surface)]"
+                        className="signup-password-toggle"
                       >
                         <Icon
                           name={showPassword ? "eye-off" : "eye"}
@@ -395,19 +407,23 @@ function SignUp() {
                     </div>
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="signup-confirm-password"
-                      className="mb-1.5 block font-body text-[12px] font-semibold text-[var(--color-on-surface)]"
-                    >
+                  <div className="signup-field">
+                    <label htmlFor="signup-confirm-password">
                       Confirm password
                     </label>
 
-                    <div className="relative">
+                    <div
+                      className={[
+                        "signup-input-wrapper",
+                        showPasswordMismatch
+                          ? "signup-input-wrapper--invalid"
+                          : "",
+                      ].join(" ")}
+                    >
                       <Icon
                         name="lock"
                         size={17}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)]"
+                        className="signup-input-icon"
                       />
 
                       <input
@@ -419,9 +435,15 @@ function SignUp() {
                         onChange={(event) =>
                           setConfirmPassword(event.target.value)
                         }
+                        onBlur={() => setConfirmPasswordTouched(true)}
                         placeholder="Confirm your password"
                         required
-                        className="h-11 w-full rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] pl-10 pr-10 font-body text-[13px] text-[var(--color-on-surface)] outline-none placeholder:text-[var(--color-outline)] transition-[border-color,box-shadow] duration-[var(--motion-fast)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                        aria-invalid={showPasswordMismatch}
+                        aria-describedby={
+                          showPasswordMismatch
+                            ? "signup-password-match-error"
+                            : undefined
+                        }
                       />
 
                       <button
@@ -439,7 +461,7 @@ function SignUp() {
                         onClick={() =>
                           setShowConfirmPassword((value) => !value)
                         }
-                        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center text-[var(--color-on-surface-variant)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-on-surface)]"
+                        className="signup-password-toggle"
                       >
                         <Icon
                           name={showConfirmPassword ? "eye-off" : "eye"}
@@ -447,66 +469,52 @@ function SignUp() {
                         />
                       </button>
                     </div>
+
+                    {showPasswordMismatch && (
+                      <p
+                        id="signup-password-match-error"
+                        className="signup-field-error"
+                      >
+                        Passwords do not match.
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="rounded-[6px] bg-[var(--color-surface-container-low)] px-3 py-2.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
-                      Password health
-                    </span>
-
-                    <span className="font-body text-[10px] font-semibold text-[var(--color-primary)]">
-                      {passwordLabel}
-                    </span>
+                <div className="signup-password-health">
+                  <div className="signup-password-health__header">
+                    <span>Password health</span>
+                    <strong>{passwordLabel}</strong>
                   </div>
 
-                  <div className="mt-2 grid grid-cols-4 gap-1.5">
-                    {[1, 2, 3, 4].map((level) => (
+                  <div className="signup-password-health__bars">
+                    {[1, 2, 3, 4, 5].map((level) => (
                       <span
                         key={level}
-                        className={[
-                          "h-1 rounded-full transition-colors duration-[var(--motion-fast)]",
-                          level <= passwordScore
-                            ? "bg-[var(--color-primary)]"
-                            : "bg-[var(--color-outline-variant)]",
-                        ].join(" ")}
+                        className={level <= passwordScore ? "is-active" : ""}
                       />
                     ))}
                   </div>
 
-                  <p className="mt-1.5 font-body text-[10px] leading-4 text-[var(--color-on-surface-variant)]">
+                  <p>
                     Use 8+ characters with upper, lower, number, and symbol.
                   </p>
                 </div>
 
-                {!passwordsMatch && (
-                  <p className="font-body text-[11px] text-[var(--color-primary)]">
-                    Passwords do not match.
-                  </p>
-                )}
-
-                <label className="flex cursor-pointer items-start gap-3">
+                <label className="signup-terms">
                   <input
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(event) => setAcceptedTerms(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
                   />
 
-                  <span className="font-body text-[11px] leading-5 text-[var(--color-on-surface-variant)]">
+                  <span>
                     I agree to the{" "}
-                    <button
-                      type="button"
-                      className="text-[var(--color-primary)] underline underline-offset-2"
-                    >
+                    <button type="button" className="signup-inline-link">
                       Terms of Service
                     </button>{" "}
                     and{" "}
-                    <button
-                      type="button"
-                      className="text-[var(--color-primary)] underline underline-offset-2"
-                    >
+                    <button type="button" className="signup-inline-link">
                       Privacy Policy
                     </button>
                     .
@@ -514,10 +522,7 @@ function SignUp() {
                 </label>
 
                 {error && (
-                  <div
-                    role="alert"
-                    className="rounded-[6px] border border-[color-mix(in_srgb,var(--color-primary)_28%,transparent)] bg-[color-mix(in_srgb,var(--color-primary)_8%,transparent)] px-3 py-2.5 font-body text-[11px] leading-5 text-[var(--color-primary)]"
-                  >
+                  <div role="alert" className="signup-error">
                     {error}
                   </div>
                 )}
@@ -525,57 +530,38 @@ function SignUp() {
                 <button
                   type="submit"
                   disabled={!canSubmit || submitting || googleSubmitting}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-[6px] !bg-[var(--color-primary)] px-5 font-body text-[14px] font-semibold !text-[var(--color-on-primary)] shadow-[var(--shadow-sm)] transition-[background-color,transform,opacity] duration-[var(--motion-fast)] hover:!bg-[var(--color-primary-container)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
+                  className="signup-submit-button"
                 >
-                  {submitting ? "Creating account…" : "Create account"}
+                  <span>
+                    {submitting ? "Creating account…" : "Create account"}
+                  </span>
 
                   {!submitting && <Icon name="arrow-right" size={16} />}
                 </button>
               </form>
 
-              <div className="mt-3 pt-1">
-                <p className="mt-7 text-center font-body text-[12px] text-[var(--color-on-surface-variant)]">
-                  Already have an account?{" "}
-                  <button
-                    type="button"
-                    onClick={() => navigate("/login")}
-                    className="font-medium text-[var(--color-primary)] underline underline-offset-2 transition-colors hover:text-[var(--color-primary-container)]"
-                  >
-                    Sign in
-                  </button>
-                </p>
+              <p className="signup-login-text">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className="signup-inline-link"
+                >
+                  Sign in
+                </button>
+              </p>
+            </div>
+
+            <div className="signup-form-footer">
+              <div className="signup-form-footer__security">
+                <Icon name="lock" size={12} />
+                <span>Your connection is encrypted</span>
               </div>
 
-              <div className="mt-6 border-t border-[var(--color-outline-variant)] pt-4">
-                <div className="flex flex-col gap-3 text-[10px] sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-2 font-body text-[var(--color-on-surface-variant)]">
-                    <Icon name="lock" size={12} />
-                    Your connection is encrypted
-                  </div>
-
-                  <div className="flex items-center gap-4 font-body text-[var(--color-on-surface-variant)]">
-                    <button
-                      type="button"
-                      className="transition-colors hover:text-[var(--color-primary)]"
-                    >
-                      Privacy
-                    </button>
-
-                    <button
-                      type="button"
-                      className="transition-colors hover:text-[var(--color-primary)]"
-                    >
-                      Terms
-                    </button>
-
-                    <button
-                      type="button"
-                      className="transition-colors hover:text-[var(--color-primary)]"
-                    >
-                      Security
-                    </button>
-                  </div>
-                </div>
+              <div className="signup-form-footer__links">
+                <button type="button">Privacy</button>
+                <button type="button">Terms</button>
+                <button type="button">Security</button>
               </div>
             </div>
           </section>
