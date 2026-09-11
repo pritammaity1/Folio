@@ -492,7 +492,7 @@ function PostPreview() {
 
           <footer className="mx-auto mt-16 max-w-[720px] border-t border-black/10 pb-10 pt-7">
             <Link
-              to="/posts"
+              to="/blog"
               className="inline-flex items-center gap-2 text-sm font-semibold text-black/55 transition-colors hover:text-black"
             >
               <Icon name="arrow-left" size={16} />

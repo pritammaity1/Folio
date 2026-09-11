@@ -421,7 +421,7 @@ export default function Dashboard() {
             </div>
 
             <Link
-              to="/posts"
+              to="/blog"
               className="inline-flex items-center gap-1.5 self-start font-body text-[11px] font-semibold text-[var(--color-primary)] transition-colors hover:text-[var(--color-primary-container)] sm:self-auto"
             >
               View all stories
