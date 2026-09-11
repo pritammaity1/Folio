@@ -1,5 +1,5 @@
-import { verifyFirebaseIdToken } from "../src/server/firebase-auth";
-import { deleteMedia, registerMedia } from "../src/server/media-service";
+import { verifyFirebaseIdToken } from "../src/server/firebase-auth.js";
+import { deleteMedia, registerMedia } from "../src/server/media-service.js";
 
 async function authenticate(request: Request) {
   const authorization = request.headers.get("authorization");

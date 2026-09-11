@@ -1,6 +1,10 @@
-import { verifyFirebaseIdToken } from "../src/server/firebase-auth";
-import { firebaseAdminDb } from "../src/server/firebase-firestore";
-import { createPost, deletePost, updatePost } from "../src/server/post-service";
+import { verifyFirebaseIdToken } from "../src/server/firebase-auth.js";
+import { firebaseAdminDb } from "../src/server/firebase-firestore.js";
+import {
+  createPost,
+  deletePost,
+  updatePost,
+} from "../src/server/post-service.js";
 import type { PostStatus } from "../src/types/post";
 
 type AuthenticatedUser = {

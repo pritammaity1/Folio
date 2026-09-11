@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
-import { firebaseAdminApp } from "./firebase-auth";
+import { firebaseAdminApp } from "./firebase-auth.js";
 
 export const firebaseAdminDb = getFirestore(firebaseAdminApp);
 

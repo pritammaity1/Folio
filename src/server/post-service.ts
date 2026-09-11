@@ -4,13 +4,13 @@ import {
   type Transaction,
 } from "firebase-admin/firestore";
 
-import { firebaseAdminDb } from "./firebase-firestore";
-import { deleteUnusedMedia } from "./media-storage";
+import { firebaseAdminDb } from "./firebase-firestore.js";
+import { deleteUnusedMedia } from "./media-storage.js";
 import {
   getAddedMediaIds,
   getRemovedMediaIds,
   getUniqueMediaIds,
-} from "./media-reference";
+} from "./media-reference.js";
 import type { PostStatus } from "../types/post";
 
 interface PostInput {

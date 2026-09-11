@@ -1,4 +1,4 @@
-import { firebaseAdminDb } from "./firebase-firestore";
+import { firebaseAdminDb } from "./firebase-firestore.js";
 
 type UserRole = "author" | "editor" | "admin";
 

@@ -1,5 +1,5 @@
-import { utapi } from "./uploadthing-api";
-import { firebaseAdminDb } from "./firebase-firestore";
+import { utapi } from "./uploadthing-api.js";
+import { firebaseAdminDb } from "./firebase-firestore.js";
 
 export async function deleteUnusedMedia(mediaId: string) {
   const mediaRef = firebaseAdminDb.collection("media").doc(mediaId);
