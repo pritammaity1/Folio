@@ -21,63 +21,97 @@ export function Sidebar() {
         collapsed ? "w-[72px]" : "w-[218px]",
       ].join(" ")}
     >
+      {/* Sidebar header */}
       <div
         className={[
           "relative flex h-16 min-h-16 shrink-0 items-center",
           "border-b border-[var(--color-outline-variant)]",
-          collapsed ? "justify-center px-2" : "justify-between px-4",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            "flex min-w-0 items-center gap-2",
-            collapsed ? "justify-center" : "",
-          ].join(" ")}
-        >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-[var(--color-on-primary)]">
-            <span className="font-display text-sm font-semibold">F</span>
-          </div>
-
-          {!collapsed && (
-            <span className="truncate font-display text-[19px] font-semibold tracking-tight text-[var(--color-on-surface)]">
-              Folio
-            </span>
-          )}
-        </div>
-
-        <button
-          type="button"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          onClick={() => setCollapsed((value) => !value)}
-          className={[
-            "flex h-8 w-8 shrink-0 items-center justify-center",
-            "rounded-[var(--radius-md)]",
-            "text-[var(--color-on-surface-variant)]",
-            "transition-[background-color,color]",
-            "duration-[var(--motion-fast)]",
-            "hover:bg-[var(--color-surface-container-high)]",
-            "hover:text-[var(--color-on-surface)]",
-            "focus-visible:outline-2",
-            "focus-visible:outline-[var(--color-primary)]",
-            "focus-visible:outline-offset-2",
-          ].join(" ")}
-        >
-          <Icon name={collapsed ? "chevron-right" : "chevron-left"} size={18} />
-        </button>
-      </div>
-
-      <div
-        className={[
-          "flex h-12 min-h-12 shrink-0 items-center",
-          collapsed ? "justify-center px-2" : "px-2",
+          collapsed ? "justify-center" : "justify-between px-4",
         ].join(" ")}
       >
         {collapsed ? (
-          <span
-            className="h-2 w-2 rounded-full bg-[var(--color-primary)]"
+          <>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-[var(--color-on-primary)]">
+              <span className="font-display text-sm font-semibold">F</span>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              onClick={() => setCollapsed(false)}
+              className={[
+                "absolute -right-1.5 top-1/2",
+                "-translate-y-1/2",
+                "flex h-8 w-8 shrink-0 items-center justify-center",
+                "rounded-[var(--radius-md)]",
+                "text-[var(--color-on-surface-variant)]",
+                "transition-[background-color,color]",
+                "duration-[var(--motion-fast)]",
+                "hover:bg-[var(--color-surface-container-high)]",
+                "hover:text-[var(--color-on-surface)]",
+                "focus-visible:outline-2",
+                "focus-visible:outline-[var(--color-primary)]",
+                "focus-visible:outline-offset-2",
+              ].join(" ")}
+            >
+              <Icon name="chevron-right" size={18} />
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-primary)] text-[var(--color-on-primary)]">
+                <span className="font-display text-sm font-semibold">F</span>
+              </div>
+
+              <span className="truncate font-display text-[19px] font-semibold tracking-tight text-[var(--color-on-surface)]">
+                Folio
+              </span>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              onClick={() => setCollapsed(true)}
+              className={[
+                "flex h-8 w-8 shrink-0 items-center justify-center",
+                "rounded-[var(--radius-md)]",
+                "text-[var(--color-on-surface-variant)]",
+                "transition-[background-color,color]",
+                "duration-[var(--motion-fast)]",
+                "hover:bg-[var(--color-surface-container-high)]",
+                "hover:text-[var(--color-on-surface)]",
+                "focus-visible:outline-2",
+                "focus-visible:outline-[var(--color-primary)]",
+                "focus-visible:outline-offset-2",
+              ].join(" ")}
+            >
+              <Icon name="chevron-left" size={18} />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Workspace selector */}
+      <div
+        className={[
+          "flex h-12 min-h-12 shrink-0 items-center",
+          collapsed ? "justify-center" : "px-2",
+        ].join(" ")}
+      >
+        {collapsed ? (
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center"
             aria-hidden="true"
-          />
+          >
+            <Icon
+              name="chevron-down"
+              size={17}
+              className="!text-[var(--color-on-surface-variant)]"
+            />
+          </div>
         ) : (
           <button
             type="button"
@@ -106,15 +140,18 @@ export function Sidebar() {
               </span>
             </span>
 
-            <Icon
-              name="chevron-down"
-              size={17}
-              className="shrink-0 text-[var(--color-on-surface-variant)]"
-            />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+              <Icon
+                name="chevron-down"
+                size={17}
+                className="!text-[var(--color-on-surface-variant)]"
+              />
+            </span>
           </button>
         )}
       </div>
 
+      {/* Navigation */}
       <nav
         aria-label="Primary navigation"
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2 pb-3"
