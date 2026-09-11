@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SyntheticEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Icon } from "../../../components/ui/Icon/Icon";
@@ -39,6 +39,10 @@ function Blog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  const [featuredImageOrientation, setFeaturedImageOrientation] = useState<
+    "landscape" | "square" | "portrait"
+  >("landscape");
 
   useEffect(() => {
     let active = true;
@@ -179,6 +183,32 @@ function Blog() {
   const featuredPost = filteredPosts[0] ?? null;
   const latestPosts = filteredPosts.slice(1);
 
+  useEffect(() => {
+    setFeaturedImageOrientation("landscape");
+  }, [featuredPost?.id]);
+
+  function handleFeaturedImageLoad(event: SyntheticEvent<HTMLImageElement>) {
+    const image = event.currentTarget;
+
+    if (!image.naturalWidth || !image.naturalHeight) {
+      return;
+    }
+
+    const ratio = image.naturalWidth / image.naturalHeight;
+
+    if (ratio < 0.8) {
+      setFeaturedImageOrientation("portrait");
+      return;
+    }
+
+    if (ratio > 1.35) {
+      setFeaturedImageOrientation("landscape");
+      return;
+    }
+
+    setFeaturedImageOrientation("square");
+  }
+
   if (loading) {
     return (
       <div className="min-h-dvh bg-[var(--color-background)] text-[var(--color-on-surface)]">
@@ -280,15 +310,31 @@ function Blog() {
                     className="group h-full cursor-pointer overflow-hidden rounded-[12px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-xs)] transition-[transform,box-shadow] duration-[var(--motion-normal)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
                     onClick={() => navigate(`/posts/${featuredPost.id}`)}
                   >
-                    <div className="grid h-full min-h-[500px] lg:grid-cols-[1.15fr_0.85fr]">
-                      <div className="relative h-full min-h-[360px] overflow-hidden bg-[var(--color-surface-container-low)] lg:min-h-0">
+                    <div
+                      className={[
+                        "grid min-h-[500px]",
+                        "grid-cols-1",
+                        featuredImageOrientation === "portrait"
+                          ? "lg:grid-cols-[0.72fr_1fr]"
+                          : featuredImageOrientation === "square"
+                            ? "lg:grid-cols-[1fr_1fr]"
+                            : "lg:grid-cols-[1.45fr_1fr]",
+                      ].join(" ")}
+                    >
+                      <div className="relative min-h-[300px] overflow-hidden bg-[var(--color-surface-container-low)] sm:min-h-[360px] lg:min-h-0">
                         {featuredPost.coverMediaId &&
                         mediaUrls[featuredPost.coverMediaId] ? (
                           <img
                             src={mediaUrls[featuredPost.coverMediaId]}
                             alt={featuredPost.title}
                             loading="lazy"
-                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                            onLoad={handleFeaturedImageLoad}
+                            className={[
+                              "block h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.02]",
+                              featuredImageOrientation === "portrait"
+                                ? "object-contain bg-[var(--color-surface-container-low)]"
+                                : "object-cover",
+                            ].join(" ")}
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -304,7 +350,7 @@ function Blog() {
                           </div>
                         )}
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,28,32,0.18)] to-transparent opacity-0 transition-opacity duration-[var(--motion-normal)] group-hover:opacity-100" />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(26,28,32,0.18)] to-transparent opacity-0 transition-opacity duration-[var(--motion-normal)] group-hover:opacity-100" />
                       </div>
 
                       <div className="flex min-h-[500px] flex-col justify-between p-6 sm:p-8 lg:p-9">
@@ -334,7 +380,7 @@ function Blog() {
                             {authorNames[featuredPost.authorId] ?? "Author"}
                           </p>
 
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-outline-variant)] text-[var(--color-on-surface)] transition-[background-color,border-color,transform] duration-[var(--motion-fast)] group-hover:-translate-y-0.5 group-hover:border-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-outline-variant)] text-[var(--color-on-surface)] transition-[background-color,border-color,transform,color] duration-[var(--motion-fast)] group-hover:-translate-y-0.5 group-hover:border-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white">
                             <Icon
                               name="arrow-right"
                               size={16}
