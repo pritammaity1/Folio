@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { Icon } from "../../../components/ui/Icon/Icon";
 import PostStatusBadge from "../../../features/posts/components/PostStatusBadge";
@@ -14,9 +15,8 @@ import {
 
 import { auth } from "../../../services/firebase/auth";
 import { getMediaById } from "../../../services/firebase/media";
-import { getPost } from "../../../services/firebase/posts";
+import { getPost, updatePost } from "../../../services/firebase/posts";
 import { registerMedia } from "../../../services/api/media";
-import { updatePost } from "../../../services/api/posts";
 import { useUploadThing } from "../../../services/uploadthing/client";
 
 import type { Post, PostStatus } from "../../../types/post";
@@ -102,6 +102,14 @@ function EditPost() {
         return;
       }
 
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        setError("You must be signed in to edit this story.");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError("");
@@ -114,6 +122,11 @@ function EditPost() {
 
         if (!nextPost) {
           setError("This story could not be found.");
+          return;
+        }
+
+        if (nextPost.authorId !== currentUser.uid) {
+          setError("You do not have permission to edit this story.");
           return;
         }
 
@@ -206,17 +219,17 @@ function EditPost() {
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      setMessage("You must be signed in.");
+      toast.error("You must be signed in.");
       return;
     }
 
     if (!file.type.startsWith("image/")) {
-      setMessage("Please select an image file.");
+      toast.error("Please select an image file.");
       return;
     }
 
     if (file.size > 8 * 1024 * 1024) {
-      setMessage("Cover image must be smaller than 8MB.");
+      toast.error("Cover image must be smaller than 8MB.");
       return;
     }
 
@@ -231,6 +244,7 @@ function EditPost() {
       }
 
       const uploadedFile = uploadedFiles[0];
+
       const previewUrl = uploadedFile.ufsUrl ?? uploadedFile.url;
 
       if (!previewUrl) {
@@ -246,14 +260,22 @@ function EditPost() {
       });
 
       setCoverMediaId(media.mediaId);
+
       setCoverPreviewUrl(previewUrl);
+
       markDirty();
+
+      toast.success("Cover image uploaded.");
     } catch (uploadError) {
-      setMessage(
+      console.error("Cover image upload failed.", uploadError);
+
+      const message =
         uploadError instanceof Error
           ? uploadError.message
-          : "Cover image upload failed.",
-      );
+          : "Cover image upload failed.";
+
+      setMessage(message);
+      toast.error(message);
     } finally {
       setUploadingCover(false);
     }
@@ -270,21 +292,38 @@ function EditPost() {
       return;
     }
 
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      toast.error("You must be signed in.");
+      return;
+    }
+
+    if (!post) {
+      toast.error("This story could not be loaded.");
+      return;
+    }
+
+    if (post.authorId !== currentUser.uid) {
+      toast.error("You do not have permission to edit this story.");
+      return;
+    }
+
     if (!title.trim()) {
-      setMessage("Write a headline first.");
+      toast.error("Write a headline first.");
       return;
     }
 
     if (!slug.trim()) {
-      setMessage("Add a story slug first.");
+      toast.error("Add a story slug first.");
       return;
     }
 
     if (
       ["review", "scheduled", "published"].includes(nextStatus) &&
-      !content.trim()
+      !content.replace(/<[^>]*>/g, "").trim()
     ) {
-      setMessage("Add some story content before continuing.");
+      toast.error("Add some story content before continuing.");
       return;
     }
 
@@ -292,41 +331,50 @@ function EditPost() {
     setMessage("");
 
     try {
-      await updatePost({
-        postId: id,
+      await updatePost(id, {
         title: title.trim(),
         slug: slug.trim(),
         excerpt: excerpt.trim(),
         content,
         coverMediaId,
-        mediaIds: post?.mediaIds ?? [],
-        categoryId: post?.categoryId ?? null,
+        mediaIds: post.mediaIds ?? [],
+        categoryId: post.categoryId ?? null,
         tags,
         status: nextStatus,
         publishedAt:
           nextStatus === "published"
-            ? (post?.publishedAt?.toDate?.()?.toISOString() ??
-              new Date().toISOString())
+            ? (post.publishedAt?.toDate?.() ?? new Date())
             : null,
       });
 
       const refreshedPost = await getPost(id);
 
-      if (refreshedPost) {
+      if (refreshedPost && refreshedPost.authorId === currentUser.uid) {
         setPost(refreshedPost);
+        setStatus(refreshedPost.status);
       }
 
-      setStatus(nextStatus);
       setHasSaved(true);
-      setMessage("Story saved successfully.");
+
+      if (nextStatus === "published") {
+        toast.success("Story published successfully.");
+      } else if (nextStatus === "draft") {
+        toast.success("Draft saved successfully.");
+      } else if (nextStatus === "review") {
+        toast.success("Story moved to review.");
+      } else {
+        toast.success("Story saved successfully.");
+      }
     } catch (saveError) {
       console.error("Failed to update post.", saveError);
 
-      setMessage(
+      const message =
         saveError instanceof Error
           ? saveError.message
-          : "Unable to save the story.",
-      );
+          : "Unable to save the story.";
+
+      setMessage(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -372,7 +420,9 @@ function EditPost() {
             </p>
 
             <h1 className="mt-2 font-display text-[30px] tracking-[-0.03em] text-[var(--color-on-surface)]">
-              This story isn't available.
+              {error === "You do not have permission to edit this story."
+                ? "This story belongs to another author."
+                : "This story isn't available."}
             </h1>
 
             <p className="mt-3 font-body text-[12px] leading-5 text-[var(--color-on-surface-variant)]">

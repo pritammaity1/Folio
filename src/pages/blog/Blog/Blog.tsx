@@ -1,35 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Timestamp } from "firebase/firestore";
 
 import { Icon } from "../../../components/ui/Icon/Icon";
 import { getMediaById } from "../../../services/firebase/media";
 import { getPublishedPosts } from "../../../services/firebase/posts";
+import { getUserName } from "../../../services/firebase/user";
 import type { Post } from "../../../types/post";
-
-function formatPublishedDate(value: Timestamp | null) {
-  if (!value) {
-    return "Recently published";
-  }
-
-  return value.toDate().toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function getReadingTime(content: string) {
-  const plainText = content
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const wordCount = plainText ? plainText.split(" ").length : 0;
-
-  return Math.max(1, Math.ceil(wordCount / 200));
-}
 
 function BlogSkeleton() {
   return (
@@ -58,6 +34,8 @@ function Blog() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -78,33 +56,67 @@ function Blog() {
 
         setPosts(publishedPosts);
 
-        const mediaEntries = await Promise.all(
-          publishedPosts.map(async (post) => {
-            if (!post.coverMediaId) {
-              return null;
-            }
+        const authorIds = [
+          ...new Set(
+            publishedPosts
+              .map((post) => post.authorId)
+              .filter((authorId): authorId is string => Boolean(authorId)),
+          ),
+        ];
 
-            try {
-              const media = await getMediaById(post.coverMediaId);
-
-              if (!media || media.status !== "active") {
+        const [mediaEntries, authorEntries] = await Promise.all([
+          Promise.all(
+            publishedPosts.map(async (post) => {
+              if (!post.coverMediaId) {
                 return null;
               }
 
-              return {
-                mediaId: post.coverMediaId,
-                url: media.url,
-              };
-            } catch (mediaError) {
-              console.error(
-                `Failed to load media for post ${post.id}.`,
-                mediaError,
-              );
+              try {
+                const media = await getMediaById(post.coverMediaId);
 
-              return null;
-            }
-          }),
-        );
+                if (!media || media.status !== "active" || !media.url) {
+                  return null;
+                }
+
+                return {
+                  mediaId: post.coverMediaId,
+                  url: media.url,
+                };
+              } catch (mediaError) {
+                console.error(
+                  `Failed to load media for post ${post.id}.`,
+                  mediaError,
+                );
+
+                return null;
+              }
+            }),
+          ),
+
+          Promise.all(
+            authorIds.map(async (authorId) => {
+              try {
+                const name = await getUserName(authorId);
+
+                if (!name) {
+                  return null;
+                }
+
+                return {
+                  authorId,
+                  name,
+                };
+              } catch (authorError) {
+                console.error(
+                  `Failed to load author ${authorId}.`,
+                  authorError,
+                );
+
+                return null;
+              }
+            }),
+          ),
+        ]);
 
         if (!active) {
           return;
@@ -118,7 +130,16 @@ function Blog() {
           }
         });
 
+        const nextAuthorNames: Record<string, string> = {};
+
+        authorEntries.forEach((entry) => {
+          if (entry) {
+            nextAuthorNames[entry.authorId] = entry.name;
+          }
+        });
+
         setMediaUrls(nextMediaUrls);
+        setAuthorNames(nextAuthorNames);
       } catch (loadError) {
         console.error("Failed to load published posts.", loadError);
 
@@ -253,23 +274,21 @@ function Blog() {
         ) : (
           <>
             <section className="mx-auto w-full max-w-[var(--canvas-width)] px-5 py-10 sm:px-8 lg:px-10 lg:py-14">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.8fr)]">
+              <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.8fr)]">
                 {featuredPost && (
                   <article
-                    className="group cursor-pointer overflow-hidden rounded-[12px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-xs)] transition-[transform,box-shadow] duration-[var(--motion-normal)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
+                    className="group h-full cursor-pointer overflow-hidden rounded-[12px] border border-[var(--color-outline-variant)] bg-[var(--color-surface)] shadow-[var(--shadow-xs)] transition-[transform,box-shadow] duration-[var(--motion-normal)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
                     onClick={() => navigate(`/posts/${featuredPost.id}`)}
                   >
-                    <div className="grid min-h-[500px] lg:grid-cols-[1.15fr_0.85fr]">
-                      <div className="relative min-h-[360px] overflow-hidden bg-[var(--color-surface-container-low)]">
+                    <div className="grid h-full min-h-[500px] lg:grid-cols-[1.15fr_0.85fr]">
+                      <div className="relative h-full min-h-[360px] overflow-hidden bg-[var(--color-surface-container-low)] lg:min-h-0">
                         {featuredPost.coverMediaId &&
                         mediaUrls[featuredPost.coverMediaId] ? (
-                          <div
-                            aria-label={featuredPost.title}
-                            role="img"
-                            style={{
-                              backgroundImage: `url("${mediaUrls[featuredPost.coverMediaId]}")`,
-                            }}
-                            className="absolute inset-0 bg-center bg-cover bg-no-repeat transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                          <img
+                            src={mediaUrls[featuredPost.coverMediaId]}
+                            alt={featuredPost.title}
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -288,7 +307,7 @@ function Blog() {
                         <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,28,32,0.18)] to-transparent opacity-0 transition-opacity duration-[var(--motion-normal)] group-hover:opacity-100" />
                       </div>
 
-                      <div className="flex flex-col justify-between p-6 sm:p-8 lg:p-9">
+                      <div className="flex min-h-[500px] flex-col justify-between p-6 sm:p-8 lg:p-9">
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             {featuredPost.tags.slice(0, 3).map((tag) => (
@@ -311,16 +330,9 @@ function Blog() {
                         </div>
 
                         <div className="mt-8 flex items-end justify-between gap-4 border-t border-[var(--color-outline-variant)] pt-5">
-                          <div>
-                            <p className="font-body text-[11px] font-medium text-[var(--color-on-surface)]">
-                              Published story
-                            </p>
-
-                            <p className="mt-1 font-body text-[10px] text-[var(--color-on-surface-variant)]">
-                              {formatPublishedDate(featuredPost.publishedAt)} ·{" "}
-                              {getReadingTime(featuredPost.content)} min read
-                            </p>
-                          </div>
+                          <p className="font-body text-[11px] font-medium text-[var(--color-on-surface)]">
+                            {authorNames[featuredPost.authorId] ?? "Author"}
+                          </p>
 
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-outline-variant)] text-[var(--color-on-surface)] transition-[background-color,border-color,transform] duration-[var(--motion-fast)] group-hover:-translate-y-0.5 group-hover:border-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white">
                             <Icon
@@ -383,8 +395,7 @@ function Blog() {
                               </p>
 
                               <p className="mt-3 font-body text-[10px] text-[var(--color-on-surface-variant)]">
-                                {formatPublishedDate(post.publishedAt)} ·{" "}
-                                {getReadingTime(post.content)} min read
+                                {authorNames[post.authorId] ?? "Author"}
                               </p>
                             </div>
 
@@ -433,7 +444,7 @@ function Blog() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="font-body text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">
-                              {formatPublishedDate(post.publishedAt)}
+                              {authorNames[post.authorId] ?? "Author"}
                             </p>
 
                             <h3 className="mt-2 font-display text-[22px] leading-7 tracking-[-0.02em] text-[var(--color-on-surface)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--color-primary)]">

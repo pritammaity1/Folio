@@ -1,8 +1,17 @@
-import { doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
 
+import { auth } from "./auth";
 import { db } from "./firestore";
 
-interface MediaAsset {
+export interface MediaAsset {
   id: string;
   uploadthingKey: string;
   url: string;
@@ -11,25 +20,17 @@ interface MediaAsset {
   size: number;
   uploadedBy: string;
   usageCount: number;
+  publishedUsageCount: number;
   status: "active" | "deleting";
+  isPublic: boolean;
 }
 
-const mediaCollection = "media";
+const mediaCollection = collection(db, "media");
 
-export async function getMediaById(mediaId: string) {
-  if (!mediaId.trim()) {
-    return null;
-  }
-
-  const mediaRef = doc(db, mediaCollection, mediaId);
-  const snapshot = await getDoc(mediaRef);
-
-  if (!snapshot.exists()) {
-    return null;
-  }
-
-  const data = snapshot.data();
-
+function parseMediaAsset(
+  id: string,
+  data: Record<string, unknown>,
+): MediaAsset | null {
   if (
     typeof data.url !== "string" ||
     typeof data.uploadthingKey !== "string" ||
@@ -43,8 +44,16 @@ export async function getMediaById(mediaId: string) {
     return null;
   }
 
+  const publishedUsageCount =
+    typeof data.publishedUsageCount === "number" ? data.publishedUsageCount : 0;
+
+  const isPublic =
+    typeof data.isPublic === "boolean"
+      ? data.isPublic
+      : publishedUsageCount > 0;
+
   return {
-    id: snapshot.id,
+    id,
     uploadthingKey: data.uploadthingKey,
     url: data.url,
     fileName: data.fileName,
@@ -52,6 +61,64 @@ export async function getMediaById(mediaId: string) {
     size: data.size,
     uploadedBy: data.uploadedBy,
     usageCount: data.usageCount,
+    publishedUsageCount,
     status: data.status,
-  } satisfies MediaAsset;
+    isPublic,
+  };
+}
+
+export async function getMediaById(mediaId: string) {
+  if (!mediaId.trim()) {
+    return null;
+  }
+
+  const mediaRef = doc(mediaCollection, mediaId);
+
+  const snapshot = await getDoc(mediaRef);
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  return parseMediaAsset(snapshot.id, snapshot.data());
+}
+
+export async function getMediaAssets(
+  userId: string,
+  canManageAllMedia = false,
+) {
+  if (!userId.trim()) {
+    return [];
+  }
+
+  const mediaQuery = canManageAllMedia
+    ? query(
+        mediaCollection,
+        where("status", "==", "active"),
+        orderBy("createdAt", "desc"),
+      )
+    : query(
+        mediaCollection,
+        where("uploadedBy", "==", userId),
+        where("status", "==", "active"),
+        orderBy("createdAt", "desc"),
+      );
+
+  const snapshot = await getDocs(mediaQuery);
+
+  return snapshot.docs
+    .map((mediaSnapshot) =>
+      parseMediaAsset(mediaSnapshot.id, mediaSnapshot.data()),
+    )
+    .filter((media): media is MediaAsset => media !== null);
+}
+
+export async function getCurrentUserMedia() {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error("You must be signed in.");
+  }
+
+  return getMediaAssets(currentUser.uid, false);
 }

@@ -62,6 +62,34 @@ function canManageAnyPost(role: AuthenticatedUser["role"]) {
   return role === "admin" || role === "editor";
 }
 
+function isValidStringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
+}
+
+function isValidNullableString(value: unknown) {
+  return value === null || typeof value === "string";
+}
+
+function parseDate(value: unknown) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value !== "string" && !(value instanceof Date)) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export default {
   async fetch(request: Request) {
     try {
@@ -88,12 +116,10 @@ export default {
           typeof slug !== "string" ||
           typeof excerpt !== "string" ||
           typeof content !== "string" ||
-          !(coverMediaId === null || typeof coverMediaId === "string") ||
-          !Array.isArray(mediaIds) ||
-          !mediaIds.every((value: unknown) => typeof value === "string") ||
-          !(categoryId === null || typeof categoryId === "string") ||
-          !Array.isArray(tags) ||
-          !tags.every((value: unknown) => typeof value === "string") ||
+          !isValidNullableString(coverMediaId) ||
+          !isValidStringArray(mediaIds) ||
+          !isValidNullableString(categoryId) ||
+          !isValidStringArray(tags) ||
           !isValidStatus(status)
         ) {
           return Response.json(
@@ -104,22 +130,10 @@ export default {
           );
         }
 
-        if (
-          !canManageAnyPost(user.role) &&
-          (status === "published" ||
-            status === "scheduled" ||
-            status === "archived" ||
-            body.authorId !== user.uid)
-        ) {
-          return Response.json(
-            {
-              error: "You are not allowed to create this post.",
-            },
-            { status: 403 },
-          );
-        }
+        const requestedAuthorId =
+          typeof body.authorId === "string" ? body.authorId : user.uid;
 
-        if (user.role === "author" && body.authorId !== user.uid) {
+        if (user.role === "author" && requestedAuthorId !== user.uid) {
           return Response.json(
             {
               error: "Authors can only create posts for themselves.",
@@ -128,27 +142,59 @@ export default {
           );
         }
 
-        if (user.role === "author" && !["draft", "review"].includes(status)) {
+        if (
+          user.role === "author" &&
+          !["draft", "review", "published"].includes(status)
+        ) {
           return Response.json(
             {
-              error: "Authors can only create drafts or review posts.",
+              error:
+                "Authors can only create draft, review, or published posts.",
             },
             { status: 403 },
           );
         }
 
+        if (status === "published" && !content.replace(/<[^>]*>/g, "").trim()) {
+          return Response.json(
+            {
+              error: "Published posts must contain content.",
+            },
+            { status: 400 },
+          );
+        }
+
+        const parsedPublishedAt =
+          publishedAt === undefined || publishedAt === null
+            ? null
+            : parseDate(publishedAt);
+
+        if (
+          publishedAt !== undefined &&
+          publishedAt !== null &&
+          !parsedPublishedAt
+        ) {
+          return Response.json(
+            {
+              error: "Invalid publishedAt value.",
+            },
+            { status: 400 },
+          );
+        }
+
         const postId = await createPost({
-          title,
-          slug,
-          excerpt,
+          title: title.trim(),
+          slug: slug.trim(),
+          excerpt: excerpt.trim(),
           content,
           coverMediaId,
           mediaIds,
-          authorId: user.uid,
+          authorId: canManageAnyPost(user.role) ? requestedAuthorId : user.uid,
           categoryId,
           tags,
           status,
-          publishedAt: publishedAt ? new Date(publishedAt) : null,
+          publishedAt:
+            status === "published" ? (parsedPublishedAt ?? new Date()) : null,
         });
 
         return Response.json({ postId }, { status: 201 });
@@ -157,7 +203,8 @@ export default {
       if (request.method === "PATCH") {
         const body = await request.json();
 
-        const postId = typeof body.postId === "string" ? body.postId : null;
+        const postId =
+          typeof body.postId === "string" ? body.postId.trim() : "";
 
         if (!postId) {
           return Response.json(
@@ -168,10 +215,9 @@ export default {
           );
         }
 
-        const existingPost = await firebaseAdminDb
-          .collection("posts")
-          .doc(postId)
-          .get();
+        const postRef = firebaseAdminDb.collection("posts").doc(postId);
+
+        const existingPost = await postRef.get();
 
         if (!existingPost.exists) {
           return Response.json(
@@ -184,7 +230,16 @@ export default {
 
         const existing = existingPost.data();
 
-        if (user.role === "author" && existing?.authorId !== user.uid) {
+        if (!existing) {
+          return Response.json(
+            {
+              error: "Post data is missing.",
+            },
+            { status: 500 },
+          );
+        }
+
+        if (!canManageAnyPost(user.role) && existing.authorId !== user.uid) {
           return Response.json(
             {
               error: "You can only edit your own posts.",
@@ -194,12 +249,13 @@ export default {
         }
 
         if (
-          user.role === "author" &&
-          !["draft", "review"].includes(existing?.status)
+          body.authorId !== undefined &&
+          (typeof body.authorId !== "string" ||
+            body.authorId !== existing.authorId)
         ) {
           return Response.json(
             {
-              error: "This post can no longer be edited by its author.",
+              error: "Changing the post author is not allowed.",
             },
             { status: 403 },
           );
@@ -214,36 +270,133 @@ export default {
           );
         }
 
+        const nextStatus =
+          body.status !== undefined ? body.status : existing.status;
+
         if (
           user.role === "author" &&
-          body.status !== undefined &&
-          !["draft", "review"].includes(body.status)
+          !["draft", "review", "published"].includes(nextStatus)
         ) {
           return Response.json(
             {
-              error: "Authors cannot publish or schedule posts.",
+              error: "Authors cannot use this post status.",
             },
             { status: 403 },
           );
         }
 
+        if (nextStatus === "published") {
+          const nextContent =
+            typeof body.content === "string"
+              ? body.content
+              : typeof existing.content === "string"
+                ? existing.content
+                : "";
+
+          if (!nextContent.replace(/<[^>]*>/g, "").trim()) {
+            return Response.json(
+              {
+                error: "Published posts must contain content.",
+              },
+              { status: 400 },
+            );
+          }
+        }
+
+        if (
+          body.coverMediaId !== undefined &&
+          !isValidNullableString(body.coverMediaId)
+        ) {
+          return Response.json(
+            {
+              error: "Invalid coverMediaId.",
+            },
+            { status: 400 },
+          );
+        }
+
+        if (body.mediaIds !== undefined && !isValidStringArray(body.mediaIds)) {
+          return Response.json(
+            {
+              error: "Invalid mediaIds.",
+            },
+            { status: 400 },
+          );
+        }
+
+        if (
+          body.categoryId !== undefined &&
+          !isValidNullableString(body.categoryId)
+        ) {
+          return Response.json(
+            {
+              error: "Invalid categoryId.",
+            },
+            { status: 400 },
+          );
+        }
+
+        if (body.tags !== undefined && !isValidStringArray(body.tags)) {
+          return Response.json(
+            {
+              error: "Invalid tags.",
+            },
+            { status: 400 },
+          );
+        }
+
+        let nextPublishedAt: Date | null | undefined;
+
+        if (body.publishedAt !== undefined) {
+          if (body.publishedAt === null) {
+            nextPublishedAt = null;
+          } else {
+            nextPublishedAt = parseDate(body.publishedAt);
+
+            if (!nextPublishedAt) {
+              return Response.json(
+                {
+                  error: "Invalid publishedAt value.",
+                },
+                { status: 400 },
+              );
+            }
+          }
+        }
+
+        if (nextStatus === "published" && body.publishedAt === undefined) {
+          nextPublishedAt = existing.publishedAt?.toDate?.() ?? new Date();
+        }
+
+        if (nextStatus !== "published" && body.status !== undefined) {
+          nextPublishedAt = null;
+        }
+
         await updatePost(postId, {
-          title: typeof body.title === "string" ? body.title : undefined,
-          slug: typeof body.slug === "string" ? body.slug : undefined,
-          excerpt: typeof body.excerpt === "string" ? body.excerpt : undefined,
+          title: typeof body.title === "string" ? body.title.trim() : undefined,
+
+          slug: typeof body.slug === "string" ? body.slug.trim() : undefined,
+
+          excerpt:
+            typeof body.excerpt === "string" ? body.excerpt.trim() : undefined,
+
           content: typeof body.content === "string" ? body.content : undefined,
+
           coverMediaId:
             body.coverMediaId !== undefined ? body.coverMediaId : undefined,
-          mediaIds: Array.isArray(body.mediaIds) ? body.mediaIds : undefined,
+
+          mediaIds: body.mediaIds !== undefined ? body.mediaIds : undefined,
+
           categoryId:
             body.categoryId !== undefined ? body.categoryId : undefined,
-          tags: Array.isArray(body.tags) ? body.tags : undefined,
+
+          tags: body.tags !== undefined ? body.tags : undefined,
+
           status: body.status !== undefined ? body.status : undefined,
+
           publishedAt:
-            body.publishedAt !== undefined
-              ? body.publishedAt
-                ? new Date(body.publishedAt)
-                : null
+            body.publishedAt !== undefined || nextStatus === "published"
+              ? (nextPublishedAt ?? null)
               : undefined,
         });
 
@@ -255,7 +408,8 @@ export default {
       if (request.method === "DELETE") {
         const body = await request.json();
 
-        const postId = typeof body.postId === "string" ? body.postId : null;
+        const postId =
+          typeof body.postId === "string" ? body.postId.trim() : "";
 
         if (!postId) {
           return Response.json(
@@ -266,10 +420,9 @@ export default {
           );
         }
 
-        const postSnapshot = await firebaseAdminDb
-          .collection("posts")
-          .doc(postId)
-          .get();
+        const postRef = firebaseAdminDb.collection("posts").doc(postId);
+
+        const postSnapshot = await postRef.get();
 
         if (!postSnapshot.exists) {
           return Response.json(
@@ -282,22 +435,19 @@ export default {
 
         const post = postSnapshot.data();
 
-        if (
-          user.role === "author" &&
-          (post?.authorId !== user.uid || post?.status !== "draft")
-        ) {
+        if (!post) {
           return Response.json(
             {
-              error: "Authors can only delete their own drafts.",
+              error: "Post data is missing.",
             },
-            { status: 403 },
+            { status: 500 },
           );
         }
 
-        if (!canManageAnyPost(user.role)) {
+        if (post.authorId !== user.uid) {
           return Response.json(
             {
-              error: "You are not allowed to delete this post.",
+              error: "Only the owner of this story can delete it.",
             },
             { status: 403 },
           );
@@ -319,12 +469,27 @@ export default {
     } catch (error) {
       console.error("Post API error", error);
 
+      const message =
+        error instanceof Error ? error.message : "Internal server error.";
+
+      let status = 500;
+
+      if (message === "Unauthorized") {
+        status = 401;
+      } else if (message.includes("not found")) {
+        status = 404;
+      } else if (
+        message.includes("not allowed") ||
+        message.includes("permission")
+      ) {
+        status = 403;
+      }
+
       return Response.json(
         {
-          error:
-            error instanceof Error ? error.message : "Internal server error.",
+          error: message,
         },
-        { status: 500 },
+        { status },
       );
     }
   },

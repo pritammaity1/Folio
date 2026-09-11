@@ -13,12 +13,10 @@ import Posts from "../pages/posts/Posts/Posts";
 import NewPost from "../pages/posts/NewPost/NewPost";
 import MediaLibrary from "../pages/media/MediaLibrary/MediaLibrary";
 import Blog from "../pages/blog/Blog/Blog";
-import Analytics from "../pages/analytics/Analytics/Analytics";
-import Users from "../pages/users/Users/Users";
-import Profile from "../features/profile/Profile/Profile";
+
 import PostPreview from "../pages/posts/PostPreview/PostPreview";
 import EditPost from "../pages/posts/EditPost/EditPost";
-
+import Settings from "../pages/settings/Settings/Settings";
 interface ComingSoonProps {
   title: string;
 }
@@ -100,20 +98,8 @@ export const routes: RouteObject[] = [
           },
 
           {
-            path: "/analytics",
-            element: <Analytics />,
-          },
-          {
-            path: "/users",
-            element: <Users />,
-          },
-          {
-            path: "/profile",
-            element: <Profile />,
-          },
-          {
             path: "/settings",
-            element: <ComingSoon title="Settings" />,
+            element: <Settings />,
           },
           {
             path: "/settings/profile",

@@ -5,7 +5,8 @@ import { Icon } from "../../../components/ui/Icon/Icon";
 import { getMediaById } from "../../../services/firebase/media";
 import { getAllPosts } from "../../../services/firebase/posts";
 import type { Post } from "../../../types/post";
-
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../../services/firebase/auth";
 import PostFilter, {
   type PostSortOption,
   type PostStatusFilter,
@@ -26,12 +27,12 @@ function Posts() {
   useEffect(() => {
     let active = true;
 
-    async function loadPosts() {
+    async function loadPosts(userId: string) {
       try {
         setLoading(true);
         setError(null);
 
-        const allPosts = await getAllPosts();
+        const allPosts = await getAllPosts(userId);
 
         if (!active) {
           return;
@@ -95,10 +96,23 @@ function Posts() {
       }
     }
 
-    void loadPosts();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        if (active) {
+          setPosts([]);
+          setLoading(false);
+          setError("You need to be signed in to view your stories.");
+        }
+
+        return;
+      }
+
+      void loadPosts(user.uid);
+    });
 
     return () => {
       active = false;
+      unsubscribe();
     };
   }, []);
 

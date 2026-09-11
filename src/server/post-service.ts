@@ -43,11 +43,17 @@ interface UpdatePostInput {
 interface MediaRecord {
   uploadthingKey: string;
   usageCount: number;
+  publishedUsageCount: number;
   status: "active" | "deleting";
+  isPublic: boolean;
 }
 
 function normalizeMediaIds(coverMediaId: string | null, mediaIds: string[]) {
   return getUniqueMediaIds(coverMediaId, mediaIds);
+}
+
+function isPublishedStatus(status: unknown) {
+  return status === "published";
 }
 
 function toPublishedAt(value: Date | null | undefined) {
@@ -87,11 +93,62 @@ async function updateCategoryPostCount(
 
 async function updateMediaReferences(
   transaction: Transaction,
-  addedMediaIds: string[],
-  removedMediaIds: string[],
+  previousMediaIds: string[],
+  nextMediaIds: string[],
+  previousPublished: boolean,
+  nextPublished: boolean,
 ) {
+  const addedMediaIds = getAddedMediaIds(previousMediaIds, nextMediaIds);
+
+  const removedMediaIds = getRemovedMediaIds(previousMediaIds, nextMediaIds);
+
+  const usageDeltas = new Map<string, number>();
+  const publishedUsageDeltas = new Map<string, number>();
+
+  for (const mediaId of addedMediaIds) {
+    usageDeltas.set(mediaId, (usageDeltas.get(mediaId) ?? 0) + 1);
+  }
+
+  for (const mediaId of removedMediaIds) {
+    usageDeltas.set(mediaId, (usageDeltas.get(mediaId) ?? 0) - 1);
+  }
+
+  if (!previousPublished && nextPublished) {
+    for (const mediaId of nextMediaIds) {
+      publishedUsageDeltas.set(
+        mediaId,
+        (publishedUsageDeltas.get(mediaId) ?? 0) + 1,
+      );
+    }
+  }
+
+  if (previousPublished && !nextPublished) {
+    for (const mediaId of previousMediaIds) {
+      publishedUsageDeltas.set(
+        mediaId,
+        (publishedUsageDeltas.get(mediaId) ?? 0) - 1,
+      );
+    }
+  }
+
+  if (previousPublished && nextPublished) {
+    for (const mediaId of addedMediaIds) {
+      publishedUsageDeltas.set(
+        mediaId,
+        (publishedUsageDeltas.get(mediaId) ?? 0) + 1,
+      );
+    }
+
+    for (const mediaId of removedMediaIds) {
+      publishedUsageDeltas.set(
+        mediaId,
+        (publishedUsageDeltas.get(mediaId) ?? 0) - 1,
+      );
+    }
+  }
+
   const affectedIds = Array.from(
-    new Set([...addedMediaIds, ...removedMediaIds]),
+    new Set([...usageDeltas.keys(), ...publishedUsageDeltas.keys()]),
   );
 
   const mediaRefs = affectedIds.map((mediaId) =>
@@ -131,12 +188,24 @@ async function updateMediaReferences(
       );
     }
 
+    const publishedUsageCount =
+      typeof data.publishedUsageCount === "number"
+        ? data.publishedUsageCount
+        : 0;
+
+    const isPublic =
+      typeof data.isPublic === "boolean"
+        ? data.isPublic
+        : publishedUsageCount > 0;
+
     mediaById.set(affectedIds[index], {
       ref: mediaRefs[index],
       data: {
         uploadthingKey: data.uploadthingKey,
         usageCount: data.usageCount,
+        publishedUsageCount,
         status: data.status,
+        isPublic,
       },
     });
   }
@@ -163,23 +232,29 @@ async function updateMediaReferences(
     }
   }
 
-  for (const mediaId of addedMediaIds) {
-    const media = mediaById.get(mediaId)!;
+  for (const mediaId of affectedIds) {
+    const media = mediaById.get(mediaId);
 
-    transaction.update(media.ref, {
-      usageCount: media.data.usageCount + 1,
-      status: "active",
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-  }
+    if (!media) {
+      throw new Error(`Media asset ${mediaId} could not be loaded.`);
+    }
 
-  for (const mediaId of removedMediaIds) {
-    const media = mediaById.get(mediaId)!;
+    const usageDelta = usageDeltas.get(mediaId) ?? 0;
+    const publishedUsageDelta = publishedUsageDeltas.get(mediaId) ?? 0;
 
-    const nextUsageCount = Math.max(media.data.usageCount - 1, 0);
+    const nextUsageCount = Math.max(media.data.usageCount + usageDelta, 0);
+
+    const nextPublishedUsageCount = Math.max(
+      media.data.publishedUsageCount + publishedUsageDelta,
+      0,
+    );
+
+    const nextIsPublic = nextPublishedUsageCount > 0;
 
     transaction.update(media.ref, {
       usageCount: nextUsageCount,
+      publishedUsageCount: nextPublishedUsageCount,
+      isPublic: nextIsPublic,
       status: nextUsageCount === 0 ? "deleting" : "active",
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -216,16 +291,6 @@ export async function createPost(input: PostInput) {
   const postRef = firebaseAdminDb.collection("posts").doc();
 
   await firebaseAdminDb.runTransaction(async (transaction) => {
-    const mediaRefs = normalizedMediaIds.map((mediaId) =>
-      firebaseAdminDb.collection("media").doc(mediaId),
-    );
-
-    const mediaSnapshots = [];
-
-    for (const mediaRef of mediaRefs) {
-      mediaSnapshots.push(await transaction.get(mediaRef));
-    }
-
     let categoryRef: FirebaseFirestore.DocumentReference | null = null;
 
     let categorySnapshot: FirebaseFirestore.DocumentSnapshot | null = null;
@@ -242,36 +307,13 @@ export async function createPost(input: PostInput) {
       }
     }
 
-    for (let index = 0; index < mediaSnapshots.length; index += 1) {
-      const snapshot = mediaSnapshots[index];
-
-      if (!snapshot.exists) {
-        throw new Error(
-          `Media asset ${normalizedMediaIds[index]} does not exist.`,
-        );
-      }
-
-      const data = snapshot.data();
-
-      if (data?.status !== "active" || typeof data?.usageCount !== "number") {
-        throw new Error(
-          `Media asset ${normalizedMediaIds[index]} is not available.`,
-        );
-      }
-    }
-
-    for (let index = 0; index < mediaRefs.length; index += 1) {
-      const mediaRef = mediaRefs[index];
-      const mediaSnapshot = mediaSnapshots[index];
-
-      const usageCount = mediaSnapshot.data()?.usageCount ?? 0;
-
-      transaction.update(mediaRef, {
-        usageCount: usageCount + 1,
-        status: "active",
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-    }
+    await updateMediaReferences(
+      transaction,
+      [],
+      normalizedMediaIds,
+      false,
+      isPublishedStatus(input.status),
+    );
 
     if (categoryRef && categorySnapshot) {
       await updateCategoryPostCount(
@@ -328,6 +370,8 @@ export async function updatePost(postId: string, input: UpdatePostInput) {
     const previousCategoryId =
       typeof existing?.categoryId === "string" ? existing.categoryId : null;
 
+    const previousStatus = existing?.status;
+
     const nextCoverMediaId =
       input.coverMediaId !== undefined
         ? input.coverMediaId
@@ -339,6 +383,9 @@ export async function updatePost(postId: string, input: UpdatePostInput) {
     const nextCategoryId =
       input.categoryId !== undefined ? input.categoryId : previousCategoryId;
 
+    const nextStatus =
+      input.status !== undefined ? input.status : previousStatus;
+
     const previousUniqueMediaIds = normalizeMediaIds(
       previousCoverMediaId,
       previousMediaIds,
@@ -349,20 +396,12 @@ export async function updatePost(postId: string, input: UpdatePostInput) {
       nextMediaIds,
     );
 
-    const addedMediaIds = getAddedMediaIds(
-      previousUniqueMediaIds,
-      nextUniqueMediaIds,
-    );
-
-    const removedMediaIds = getRemovedMediaIds(
-      previousUniqueMediaIds,
-      nextUniqueMediaIds,
-    );
-
     mediaIdsToDelete = await updateMediaReferences(
       transaction,
-      addedMediaIds,
-      removedMediaIds,
+      previousUniqueMediaIds,
+      nextUniqueMediaIds,
+      isPublishedStatus(previousStatus),
+      isPublishedStatus(nextStatus),
     );
 
     let previousCategoryRef: FirebaseFirestore.DocumentReference | null = null;
@@ -502,6 +541,8 @@ export async function deletePost(postId: string) {
         )
       : [];
 
+    const postIsPublished = isPublishedStatus(data?.status);
+
     let categoryRef: FirebaseFirestore.DocumentReference | null = null;
 
     let categorySnapshot: FirebaseFirestore.DocumentSnapshot | null = null;
@@ -518,40 +559,13 @@ export async function deletePost(postId: string) {
 
     const referencedMediaIds = normalizeMediaIds(coverMediaId, mediaIds);
 
-    const mediaRefs = referencedMediaIds.map((mediaId) =>
-      firebaseAdminDb.collection("media").doc(mediaId),
+    mediaIdsToDelete = await updateMediaReferences(
+      transaction,
+      referencedMediaIds,
+      [],
+      postIsPublished,
+      false,
     );
-
-    const mediaSnapshots = [];
-
-    for (const mediaRef of mediaRefs) {
-      mediaSnapshots.push(await transaction.get(mediaRef));
-    }
-
-    for (let index = 0; index < mediaSnapshots.length; index += 1) {
-      const mediaSnapshot = mediaSnapshots[index];
-
-      if (!mediaSnapshot.exists) {
-        continue;
-      }
-
-      const media = mediaSnapshot.data();
-
-      const usageCount =
-        typeof media?.usageCount === "number" ? media.usageCount : 0;
-
-      const nextUsageCount = Math.max(usageCount - 1, 0);
-
-      transaction.update(mediaRefs[index], {
-        usageCount: nextUsageCount,
-        status: nextUsageCount === 0 ? "deleting" : "active",
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-
-      if (nextUsageCount === 0) {
-        mediaIdsToDelete.push(referencedMediaIds[index]);
-      }
-    }
 
     if (categoryRef && categorySnapshot) {
       await updateCategoryPostCount(

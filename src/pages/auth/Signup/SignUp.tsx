@@ -313,7 +313,13 @@ function SignUp() {
                 className="signup-form"
                 noValidate
               >
-                <div className="signup-field">
+                <div
+                  className="group relative z-0 transition-transform
+                    duration-[var(--motion-fast)]
+                    ease-[var(--ease-emphasized)]
+                    focus-within:z-10
+                    focus-within:scale-[1.022]"
+                >
                   <label htmlFor="signup-name">Full name</label>
 
                   <div className="signup-input-wrapper">
@@ -332,7 +338,14 @@ function SignUp() {
                   </div>
                 </div>
 
-                <div className="signup-field">
+                <div
+                  className="signup-field group relative z-0
+                    transition-transform
+                    duration-[var(--motion-fast)]
+                    ease-[var(--ease-emphasized)]
+                    focus-within:z-10
+                    focus-within:scale-[1.022]"
+                >
                   <label htmlFor="signup-email">Email</label>
 
                   <div
@@ -367,7 +380,14 @@ function SignUp() {
                   )}
                 </div>
 
-                <div className="signup-password-grid">
+                <div
+                  className="signup-password-grid group relative z-0
+                      transition-transform
+                      duration-[var(--motion-fast)]
+                      ease-[var(--ease-emphasized)]
+                      focus-within:z-10
+                      focus-within:scale-[1.022]"
+                >
                   <div className="signup-field">
                     <label htmlFor="signup-password">Password</label>
 
@@ -407,7 +427,14 @@ function SignUp() {
                     </div>
                   </div>
 
-                  <div className="signup-field">
+                  <div
+                    className="signup-field group relative z-0
+                          transition-transform
+                          duration-[var(--motion-fast)]
+                          ease-[var(--ease-emphasized)]
+                          focus-within:z-10
+                          focus-within:scale-[1.022]"
+                  >
                     <label htmlFor="signup-confirm-password">
                       Confirm password
                     </label>
@@ -540,12 +567,12 @@ function SignUp() {
                 </button>
               </form>
 
-              <p className="signup-login-text">
+              <p className="!mt-[14px] text-center font-body text-[12px] leading-[1.4] text-[var(--color-on-surface-variant)]">
                 Already have an account?{" "}
                 <button
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="signup-inline-link"
+                  className="!bg-transparent p-0 font-medium !text-[var(--color-primary)] underline decoration-1 underline-offset-2 transition-colors duration-[var(--motion-fast)] hover:!bg-transparent hover:!text-[var(--color-primary-container)]"
                 >
                   Sign in
                 </button>

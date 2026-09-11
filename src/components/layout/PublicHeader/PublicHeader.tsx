@@ -6,8 +6,6 @@ import { Icon } from "../../ui/Icon/Icon";
 const navigationItems = [
   { label: "Home", path: "/" },
   { label: "Blog", path: "/blog" },
-
-  { label: "About", path: "/about" },
 ];
 
 function PublicHeader() {

@@ -21,7 +21,6 @@ export function SidebarItem({
     path === "/posts" ||
     path === "/posts/new" ||
     path === "/media" ||
-    path === "/analytics" ||
     path === "/users" ||
     path === "/settings";
 
@@ -44,21 +43,35 @@ export function SidebarItem({
           isActive
             ? [
                 "bg-[var(--color-primary)]",
-                "text-[var(--color-on-primary)]",
+                "!text-[var(--color-on-primary)]",
                 "font-semibold",
               ].join(" ")
             : [
-                "text-[var(--color-on-surface-variant)]",
+                "!text-[var(--color-on-surface)]",
                 "hover:bg-[var(--color-surface-container-high)]",
-                "hover:text-[var(--color-on-surface)]",
+                "hover:!text-[var(--color-on-surface)]",
                 "active:translate-y-px",
               ].join(" "),
         ].join(" ")
       }
     >
-      <Icon name={icon} size={18} strokeWidth={1.8} className="shrink-0" />
+      {({ isActive }) => (
+        <>
+          <Icon
+            name={icon}
+            size={18}
+            strokeWidth={1.8}
+            className={[
+              "shrink-0",
+              isActive
+                ? "!text-[var(--color-on-primary)]"
+                : "!text-[var(--color-on-surface)]",
+            ].join(" ")}
+          />
 
-      {!collapsed && <span className="truncate">{label}</span>}
+          {!collapsed && <span className="truncate">{label}</span>}
+        </>
+      )}
     </NavLink>
   );
 }

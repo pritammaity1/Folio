@@ -18,12 +18,12 @@ export function Sidebar() {
         "transition-[width]",
         "duration-[var(--motion-slow)]",
         "ease-[var(--ease-standard)]",
-        collapsed ? "w-[58px]" : "w-[218px]",
+        collapsed ? "w-[72px]" : "w-[218px]",
       ].join(" ")}
     >
       <div
         className={[
-          "flex h-16 min-h-16 shrink-0 items-center",
+          "relative flex h-16 min-h-16 shrink-0 items-center",
           "border-b border-[var(--color-outline-variant)]",
           collapsed ? "justify-center px-2" : "justify-between px-4",
         ].join(" ")}
@@ -70,7 +70,7 @@ export function Sidebar() {
       <div
         className={[
           "flex h-12 min-h-12 shrink-0 items-center",
-          collapsed ? "justify-center" : "px-2",
+          collapsed ? "justify-center px-2" : "px-2",
         ].join(" ")}
       >
         {collapsed ? (

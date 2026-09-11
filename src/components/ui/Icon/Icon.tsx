@@ -39,6 +39,8 @@ import {
   Pencil,
   ArrowUpRight,
   TriangleAlert,
+  Trash,
+  Edit,
 } from "lucide-react";
 
 export type IconName =
@@ -84,7 +86,9 @@ export type IconName =
   | "rotate-ccw"
   | "pencil"
   | "arrow-up-right"
-  | "triangle-alert";
+  | "triangle-alert"
+  | "trash"
+  | "edit";
 
 const icons: Record<IconName, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -130,6 +134,8 @@ const icons: Record<IconName, LucideIcon> = {
   pencil: Pencil,
   "arrow-up-right": ArrowUpRight,
   "triangle-alert": TriangleAlert,
+  trash: Trash,
+  edit: Edit,
 };
 
 interface IconProps {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import { useAuth } from "../../../features/auth/hooks/useAuth";
 import EditorCanvas from "../../../features/editor/components/EditorCanvas";
@@ -10,8 +11,9 @@ import {
   generateSlug,
   getReadingTime,
 } from "../../../features/editor/validation";
+
 import { auth } from "../../../services/firebase/auth";
-import { createPost } from "../../../services/api/posts";
+import { createPost } from "../../../services/firebase/posts";
 import { registerMedia } from "../../../services/api/media";
 import { useUploadThing } from "../../../services/uploadthing/client";
 
@@ -30,7 +32,6 @@ function NewPost() {
   const [tags, setTags] = useState<string[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
   const [previewMode] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
 
@@ -59,6 +60,17 @@ function NewPost() {
     user?.displayName?.trim() || user?.email?.split("@")[0] || "Editor";
 
   const updatedLabel = hasSaved ? "Saved just now" : "Not saved yet";
+
+  function resetEditor() {
+    setTitle("");
+    setSlug("");
+    setExcerpt("");
+    setContent("");
+    setCoverMediaId(null);
+    setCoverPreviewUrl(null);
+    setTags([]);
+    setHasSaved(false);
+  }
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -89,22 +101,21 @@ function NewPost() {
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
-      setMessage("You must be signed in.");
+      toast.error("You must be signed in.");
       return;
     }
 
     if (!file.type.startsWith("image/")) {
-      setMessage("Please select an image file.");
+      toast.error("Please select an image file.");
       return;
     }
 
     if (file.size > 8 * 1024 * 1024) {
-      setMessage("Cover image must be smaller than 8MB.");
+      toast.error("Cover image must be smaller than 8MB.");
       return;
     }
 
     setUploadingCover(true);
-    setMessage("");
 
     try {
       const uploadedFiles = await startUpload([file]);
@@ -131,9 +142,10 @@ function NewPost() {
       setCoverMediaId(media.mediaId);
       setCoverPreviewUrl(previewUrl);
       setHasSaved(false);
-      setMessage("");
+
+      toast.success("Cover image uploaded.");
     } catch (error) {
-      setMessage(
+      toast.error(
         error instanceof Error ? error.message : "Cover image upload failed.",
       );
     } finally {
@@ -145,7 +157,6 @@ function NewPost() {
     setCoverMediaId(null);
     setCoverPreviewUrl(null);
     setHasSaved(false);
-    setMessage("");
   }
 
   function validateStory(targetStatus: EditorStatus) {
@@ -171,50 +182,51 @@ function NewPost() {
 
   async function saveStory(targetStatus: EditorStatus) {
     if (!user) {
-      setMessage("You must be signed in.");
+      toast.error("You must be signed in.");
       return;
     }
 
     const validationError = validateStory(targetStatus);
 
     if (validationError) {
-      setMessage(validationError);
+      toast.error(validationError);
       return;
     }
 
     setSaving(true);
-    setMessage("");
 
     try {
-      const result = await createPost({
+      const postId = await createPost({
         title: title.trim(),
         slug: slug.trim(),
         excerpt: excerpt.trim(),
         content,
         coverMediaId,
         mediaIds: [],
+        authorId: user.uid,
         categoryId: null,
         tags,
         status: targetStatus,
-        publishedAt:
-          targetStatus === "published" ? new Date().toISOString() : null,
+        publishedAt: targetStatus === "published" ? new Date() : null,
       });
 
       setHasSaved(true);
 
       if (targetStatus === "draft") {
-        navigate(`/posts/${result.postId}`);
+        toast.success("Draft saved successfully.");
+        navigate(`/posts/${postId}`);
         return;
       }
 
       if (targetStatus === "published") {
-        setMessage("Story published successfully.");
+        toast.success("Story published successfully.");
+        resetEditor();
         return;
       }
 
-      setMessage("Story submitted for review.");
+      toast.success("Story submitted successfully.");
     } catch (error) {
-      setMessage(
+      toast.error(
         error instanceof Error ? error.message : "Unable to save the story.",
       );
     } finally {
@@ -292,14 +304,6 @@ function NewPost() {
                   onUploadCover={(file) => void uploadCover(file)}
                   onRemoveCover={handleRemoveCover}
                 />
-
-                {message && (
-                  <div className="mt-4 rounded-[6px] border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] px-4 py-3">
-                    <p className="font-body text-[11px] leading-5 text-[var(--color-on-surface-variant)]">
-                      {message}
-                    </p>
-                  </div>
-                )}
               </main>
 
               <EditorSideBar

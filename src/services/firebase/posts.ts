@@ -1,22 +1,18 @@
 import {
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
   orderBy,
   query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
   where,
 } from "firebase/firestore";
 
+import { auth } from "./auth";
 import { db } from "./firestore";
-
 import type { Post, PostStatus } from "../../types/post";
 
-interface CreatePostInput {
+export interface CreatePostInput {
   title: string;
   slug: string;
   excerpt: string;
@@ -30,7 +26,7 @@ interface CreatePostInput {
   publishedAt: Date | null;
 }
 
-interface UpdatePostInput {
+export interface UpdatePostInput {
   title?: string;
   slug?: string;
   excerpt?: string;
@@ -45,30 +41,74 @@ interface UpdatePostInput {
 
 const postsCollection = collection(db, "posts");
 
-export async function createPost(postId: string, input: CreatePostInput) {
-  const postRef = doc(postsCollection, postId);
+async function getAuthenticatedToken() {
+  const user = auth.currentUser;
 
-  await setDoc(postRef, {
-    title: input.title,
-    slug: input.slug,
-    excerpt: input.excerpt,
-    content: input.content,
-    coverMediaId: input.coverMediaId,
-    mediaIds: input.mediaIds,
-    authorId: input.authorId,
-    categoryId: input.categoryId,
-    tags: input.tags,
-    status: input.status,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    publishedAt: input.publishedAt,
+  if (!user) {
+    throw new Error("You must be signed in.");
+  }
+
+  return user.getIdToken();
+}
+
+async function parseApiResponse<T>(response: Response): Promise<T> {
+  let body: unknown = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+
+  if (!response.ok) {
+    const message =
+      body &&
+      typeof body === "object" &&
+      "error" in body &&
+      typeof body.error === "string"
+        ? body.error
+        : "The request could not be completed.";
+
+    throw new Error(message);
+  }
+
+  return body as T;
+}
+
+export async function createPost(input: CreatePostInput) {
+  const token = await getAuthenticatedToken();
+
+  const response = await fetch("/api/posts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      title: input.title,
+      slug: input.slug,
+      excerpt: input.excerpt,
+      content: input.content,
+      coverMediaId: input.coverMediaId,
+      mediaIds: input.mediaIds,
+      authorId: input.authorId,
+      categoryId: input.categoryId,
+      tags: input.tags,
+      status: input.status,
+      publishedAt: input.publishedAt ? input.publishedAt.toISOString() : null,
+    }),
   });
 
-  return postId;
+  const body = await parseApiResponse<{
+    postId: string;
+  }>(response);
+
+  return body.postId;
 }
 
 export async function getPost(postId: string) {
   const postRef = doc(postsCollection, postId);
+
   const snapshot = await getDoc(postRef);
 
   if (!snapshot.exists()) {
@@ -99,23 +139,12 @@ export async function getPublishedPosts() {
   );
 }
 
-export async function updatePost(postId: string, input: UpdatePostInput) {
-  const postRef = doc(postsCollection, postId);
-
-  await updateDoc(postRef, {
-    ...input,
-    updatedAt: serverTimestamp(),
-  });
-}
-
-export async function deletePost(postId: string) {
-  const postRef = doc(postsCollection, postId);
-
-  await deleteDoc(postRef);
-}
-
-export async function getAllPosts() {
-  const allPostsQuery = query(postsCollection, orderBy("updatedAt", "desc"));
+export async function getAllPosts(authorId: string) {
+  const allPostsQuery = query(
+    postsCollection,
+    where("authorId", "==", authorId),
+    orderBy("updatedAt", "desc"),
+  );
 
   const snapshot = await getDocs(allPostsQuery);
 
@@ -126,4 +155,58 @@ export async function getAllPosts() {
         ...postSnapshot.data(),
       }) as Post,
   );
+}
+
+export async function updatePost(postId: string, input: UpdatePostInput) {
+  const token = await getAuthenticatedToken();
+
+  const response = await fetch("/api/posts", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      postId,
+
+      title: input.title,
+      slug: input.slug,
+      excerpt: input.excerpt,
+      content: input.content,
+      coverMediaId: input.coverMediaId,
+      mediaIds: input.mediaIds,
+      categoryId: input.categoryId,
+      tags: input.tags,
+      status: input.status,
+      publishedAt:
+        input.publishedAt === undefined
+          ? undefined
+          : input.publishedAt === null
+            ? null
+            : input.publishedAt.toISOString(),
+    }),
+  });
+
+  await parseApiResponse<{
+    success: true;
+  }>(response);
+}
+
+export async function deletePost(postId: string) {
+  const token = await getAuthenticatedToken();
+
+  const response = await fetch("/api/posts", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      postId,
+    }),
+  });
+
+  await parseApiResponse<{
+    success: true;
+  }>(response);
 }

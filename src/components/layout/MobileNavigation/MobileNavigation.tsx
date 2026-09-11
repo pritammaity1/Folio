@@ -3,12 +3,12 @@ import { navigation } from "../../../config/navigation";
 import { Icon } from "../../ui/Icon/Icon";
 
 const mobileItems = [
-  navigation[0].items[0],
-  navigation[1].items[0],
-  navigation[1].items[1],
-  navigation[3].items[0],
-  navigation[4].items[0],
-];
+  navigation[0].items.find((item) => item.path === "/dashboard"),
+  navigation[1].items.find((item) => item.path === "/posts"),
+  navigation[1].items.find((item) => item.path === "/posts/new"),
+  navigation[2].items.find((item) => item.path === "/media"),
+  navigation[3].items.find((item) => item.path === "/settings"),
+].filter((item): item is NonNullable<typeof item> => Boolean(item));
 
 export function MobileNavigation() {
   return (
@@ -50,6 +50,7 @@ export function MobileNavigation() {
                   size={19}
                   strokeWidth={isActive ? 2 : 1.8}
                 />
+
                 <span className="truncate">{item.label}</span>
               </>
             )}

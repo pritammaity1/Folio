@@ -7,7 +7,6 @@ export interface NavigationItem {
     | "posts"
     | "new-post"
     | "media"
-    | "analytics"
     | "users"
     | "settings";
 }
@@ -33,7 +32,6 @@ export const navigation: NavigationSection[] = [
       },
     ],
   },
-
   {
     label: "CONTENT",
     items: [
@@ -49,7 +47,6 @@ export const navigation: NavigationSection[] = [
       },
     ],
   },
-
   {
     label: "LIBRARY",
     items: [
@@ -60,26 +57,9 @@ export const navigation: NavigationSection[] = [
       },
     ],
   },
-
-  {
-    label: "INSIGHTS",
-    items: [
-      {
-        label: "Analytics",
-        path: "/analytics",
-        icon: "analytics",
-      },
-    ],
-  },
-
   {
     label: "ADMINISTRATION",
     items: [
-      {
-        label: "Users",
-        path: "/users",
-        icon: "users",
-      },
       {
         label: "Settings",
         path: "/settings",
