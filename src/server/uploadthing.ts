@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/server";
 
-import { verifyFirebaseIdToken } from "./firebase-auth";
+import { verifyFirebaseIdToken } from "./firebase-auth.js";
 
 const f = createUploadthing();
 
