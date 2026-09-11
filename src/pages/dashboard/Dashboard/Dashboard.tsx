@@ -167,7 +167,7 @@ function MetricCard({
 
 function EmptyStories() {
   return (
-    <div className="px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-container-low)] text-[var(--color-on-surface-variant)]">
         <Icon name="posts" size={21} strokeWidth={1.7} />
       </div>
@@ -180,7 +180,7 @@ function EmptyStories() {
         Your publication starts here.
       </h3>
 
-      <p className="mx-auto mt-2 max-w-md font-body text-[12px] leading-5 text-[var(--color-on-surface-variant)]">
+      <p className="mx-auto mt-2 max-w-md text-center font-body text-[12px] leading-5 text-[var(--color-on-surface-variant)]">
         Create your first story and it will appear here as your publication
         grows.
       </p>
@@ -192,8 +192,7 @@ function EmptyStories() {
           "justify-center gap-2",
           "rounded-[7px]",
           "bg-[var(--color-primary)] px-4",
-          "font-body text-[11px] font-semibold",
-          "text-[var(--color-on-primary)]",
+          "font-body text-[11px] font-semibold !text-white",
           "transition-[background-color,transform]",
           "duration-[var(--motion-fast)]",
           "hover:bg-[var(--color-primary-container)]",
